@@ -1,7 +1,8 @@
 // File: 04-core-code/ui/ui-manager.js
 
 import { TableComponent } from './table-component.js';
-import { HeaderComponent } from './header-component.js';
+// [REMOVED] HeaderComponent is no longer needed as a separate module.
+// import { HeaderComponent } from './header-component.js'; 
 import { SummaryComponent } from './summary-component.js';
 import { PanelComponent } from './panel-component.js';
 import { NotificationComponent } from './notification-component.js';
@@ -19,19 +20,20 @@ export class UIManager {
         this.mDelButton = document.getElementById('key-f5');
         const clearButtonOnKeyboard = document.getElementById('key-clear');
         this.clearButton = clearButtonOnKeyboard;
-        this.leftPanel = document.getElementById('left-panel'); // [NEW] Add reference to left panel
+        this.leftPanel = document.getElementById('left-panel');
         
         // --- 實例化所有子元件 ---
-        const tbodyElement = document.querySelector('.results-table tbody');
-        this.tableComponent = new TableComponent(tbodyElement);
+        // [MODIFIED] Pass the entire table element to the new TableComponent
+        const tableElement = document.getElementById('results-table');
+        this.tableComponent = new TableComponent(tableElement);
 
-        const inputElement = document.getElementById('input-display-cell');
-        this.headerComponent = new HeaderComponent(inputElement);
+        // [REMOVED] HeaderComponent is now managed by TableComponent.
+        // const inputElement = document.getElementById('input-display-cell');
+        // this.headerComponent = new HeaderComponent(inputElement);
 
         const summaryElement = document.getElementById('total-sum-value');
         this.summaryComponent = new SummaryComponent(summaryElement);
 
-        // [舊] 右側功能面板 (PanelComponent)
         this.functionPanel = new PanelComponent({
             panelElement: document.getElementById('function-panel'),
             toggleElement: document.getElementById('function-panel-toggle'),
@@ -59,19 +61,21 @@ export class UIManager {
     }
 
     render(state) {
+        // [REMOVED] HeaderComponent render call is no longer needed.
+        // this.headerComponent.render(state.ui.inputValue);
+        
         // --- Render all sub-components ---
-        this.headerComponent.render(state.ui.inputValue);
         this.tableComponent.render(state);
         this.summaryComponent.render(state.quoteData.summary, state.ui.isSumOutdated);
         
         // --- Update UI elements based on state ---
         this._updateButtonStates(state);
-        this._updateLeftPanelState(state.ui.currentView); // [NEW] Drive left panel from state
+        this._updateLeftPanelState(state.ui.currentView);
+        this._updateInputDisplay(state.ui.inputValue); // [NEW] Manually update the input display
         
         this._scrollToActiveCell(state);
     }
 
-    // [RENAME] Renamed from _initializeLeftPanel to reflect its new purpose
     _initializeLeftPanelLayout() {
         const appContainer = document.querySelector('.app-container');
         const leftPanel = this.leftPanel;
@@ -94,9 +98,6 @@ export class UIManager {
             const totalKeysHeight = (keyHeight * 4) + (gap * 3);
             leftPanel.style.height = totalKeysHeight + 'px';
         };
-
-        // [REMOVED] The direct click handler is now managed by InputHandler and AppController.
-        // leftPanelToggle.addEventListener('click', () => { ... });
         
         const tabs = leftPanel.querySelectorAll('.tab-button');
         const tabContents = leftPanel.querySelectorAll('.tab-content');
@@ -123,7 +124,14 @@ export class UIManager {
         window.addEventListener('resize', adjustLayout);
     }
     
-    // --- [NEW] Method to control left panel visibility based on state ---
+    // [NEW] Since the input display is now dynamically created, UIManager needs to update it directly.
+    _updateInputDisplay(inputValue) {
+        const inputDisplay = document.getElementById('input-display-cell');
+        if (inputDisplay && inputDisplay.value !== inputValue) {
+            inputDisplay.value = inputValue || '';
+        }
+    }
+    
     _updateLeftPanelState(currentView) {
         if (this.leftPanel) {
             const isExpanded = (currentView === 'DETAIL_CONFIG');

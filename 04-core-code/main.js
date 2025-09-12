@@ -15,8 +15,9 @@ import { FocusService } from './services/focus-service.js';
 import { FileService } from './services/file-service.js';
 import { UIService } from './services/ui-service.js';
 
-// --- [NEW] Import the new view module ---
+// --- Import the view modules ---
 import { QuickQuoteView } from './ui/views/quick-quote-view.js';
+import { DetailConfigView } from './ui/views/detail-config-view.js';
 
 
 const AUTOSAVE_STORAGE_KEY = 'quoteAutoSaveData';
@@ -66,7 +67,9 @@ class App {
             quoteService: quoteService
         });
 
-        // 2. [NEW] Instantiate the View module
+        const publishStateChangeCallback = () => this.eventAggregator.publish('stateChanged', this.appController._getFullState());
+
+        // 2. Instantiate the View modules
         const quickQuoteView = new QuickQuoteView({
             quoteService,
             calculationService,
@@ -75,16 +78,24 @@ class App {
             uiService,
             eventAggregator: this.eventAggregator,
             productFactory,
-            publishStateChangeCallback: () => this.eventAggregator.publish('stateChanged', this.appController._getFullState())
+            publishStateChangeCallback
+        });
+
+        const detailConfigView = new DetailConfigView({
+            quoteService,
+            uiService,
+            eventAggregator: this.eventAggregator,
+            publishStateChangeCallback
         });
         
-        // 3. Instantiate AppController, injecting only the services it directly needs + the new view
+        // 3. Instantiate AppController, injecting services and views
         this.appController = new AppController({
             eventAggregator: this.eventAggregator,
             uiService,
             quoteService,
             fileService,
-            quickQuoteView // Inject the view instance
+            quickQuoteView,
+            detailConfigView // Inject the new view instance
         });
         
         // 4. Instantiate UIManager

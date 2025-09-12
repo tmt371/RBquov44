@@ -1,20 +1,22 @@
 // File: 04-core-code/app-controller.js
 
 import { initialState } from './config/initial-state.js';
+// --- [NEW] Import the new DetailConfigView ---
+import { DetailConfigView } from './ui/views/detail-config-view.js';
 
 const AUTOSAVE_STORAGE_KEY = 'quoteAutoSaveData';
 const AUTOSAVE_INTERVAL_MS = 60000;
 
 export class AppController {
-    constructor({ eventAggregator, uiService, quoteService, fileService, quickQuoteView }) {
+    constructor({ eventAggregator, uiService, quoteService, fileService, quickQuoteView, detailConfigView }) {
         this.eventAggregator = eventAggregator;
         this.uiService = uiService;
         this.quoteService = quoteService;
         this.fileService = fileService;
         
-        // --- [NEW] Store view instances ---
+        // --- Store view instances ---
         this.quickQuoteView = quickQuoteView;
-        // this.detailConfigView = detailConfigView; // Future view will be stored here
+        this.detailConfigView = detailConfigView; // [NEW] Store the new view instance
 
         this.autoSaveTimerId = null;
         console.log("AppController (Refactored as View Manager) Initialized.");
@@ -25,11 +27,14 @@ export class AppController {
         // --- Refactored Event Subscriptions to Delegate to Views ---
         const delegateToView = (handlerName, requiresInitialState = false) => (data) => {
             const currentView = this.uiService.getState().currentView;
+            
             if (currentView === 'QUICK_QUOTE' && this.quickQuoteView && typeof this.quickQuoteView[handlerName] === 'function') {
                 const args = requiresInitialState ? [initialState.ui] : [data];
                 this.quickQuoteView[handlerName](...args);
+            } else if (currentView === 'DETAIL_CONFIG' && this.detailConfigView && typeof this.detailConfigView[handlerName] === 'function') {
+                // [NEW] Delegate to DetailConfigView if it's the active view
+                this.detailConfigView[handlerName](data);
             }
-            // else if (currentView === 'DETAIL_CONFIG' && this.detailConfigView) { ... }
         };
 
         this.eventAggregator.subscribe('numericKeyPressed', delegateToView('handleNumericKeyPress'));
@@ -57,7 +62,13 @@ export class AppController {
     }
     
     _handleNavigationToDetailView() {
-        this.uiService.setCurrentView('DETAIL_CONFIG');
+        const currentView = this.uiService.getState().currentView;
+        // Toggle between views
+        if (currentView === 'QUICK_QUOTE') {
+            this.uiService.setCurrentView('DETAIL_CONFIG');
+        } else {
+            this.uiService.setCurrentView('QUICK_QUOTE');
+        }
         this._publishStateChange();
     }
 

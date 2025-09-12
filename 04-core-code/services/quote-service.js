@@ -1,4 +1,4 @@
-// /04-core-code/services/quote-service.js
+// File: 04-core-code/services/quote-service.js
 
 /**
  * @fileoverview Service for managing quote data.
@@ -79,10 +79,22 @@ export class QuoteService {
     clearRow(selectedIndex) {
         const itemToClear = this._getItems()[selectedIndex];
         if (itemToClear) {
+            // --- Phase 1 Fields ---
             itemToClear.width = null;
             itemToClear.height = null;
             itemToClear.fabricType = null;
             itemToClear.linePrice = null;
+            // --- [NEW] Phase 2 Fields ---
+            itemToClear.location = '';
+            itemToClear.fabric = '';
+            itemToClear.color = '';
+            itemToClear.over = '';
+            itemToClear.oi = '';
+            itemToClear.lr = '';
+            itemToClear.sd = '';
+            itemToClear.chain = null;
+            itemToClear.winder = '';
+            itemToClear.motor = '';
         }
     }
 

@@ -1,4 +1,4 @@
-// /04-core-code/input-handler.js
+// File: 04-core-code/input-handler.js
 
 export class InputHandler {
     constructor(eventAggregator) {
@@ -12,8 +12,20 @@ export class InputHandler {
         this._setupPanelToggles();
         this._setupFileLoader();
         this._setupPhysicalKeyboard();
+        this._setupNavigation(); // [NEW] Add navigation setup
     }
     
+    // --- [NEW] Setup navigation-related inputs ---
+    _setupNavigation() {
+        const leftPanelToggle = document.getElementById('left-panel-toggle');
+        if (leftPanelToggle) {
+            leftPanelToggle.addEventListener('click', () => {
+                // Publish a semantic event indicating user's intent to navigate
+                this.eventAggregator.publish('userNavigatedToDetailView');
+            });
+        }
+    }
+
     _setupPhysicalKeyboard() {
         window.addEventListener('keydown', (event) => {
             if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {

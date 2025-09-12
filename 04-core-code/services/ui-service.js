@@ -1,4 +1,4 @@
-// /04-core-code/services/ui-service.js
+// File: 04-core-code/services/ui-service.js
 
 /**
  * @fileoverview A dedicated service for managing all UI-related state.
@@ -125,5 +125,22 @@ export class UIService {
      */
     setSumOutdated(isOutdated) {
         this.state.isSumOutdated = isOutdated;
+    }
+
+    // --- [NEW] SPA View Management Methods ---
+    /**
+     * Sets the current active view for the SPA.
+     * @param {string} viewName - e.g., 'QUICK_QUOTE', 'DETAIL_CONFIG'.
+     */
+    setCurrentView(viewName) {
+        this.state.currentView = viewName;
+    }
+
+    /**
+     * Sets the columns that should be visible in the table.
+     * @param {Array<string>} columns - An array of column identifiers.
+     */
+    setVisibleColumns(columns) {
+        this.state.visibleColumns = columns;
     }
 }

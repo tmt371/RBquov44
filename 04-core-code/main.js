@@ -1,4 +1,4 @@
-// /04-core-code/main.js
+// File: 04-core-code/main.js
 
 import { EventAggregator } from './event-aggregator.js';
 import { ConfigManager } from './config-manager.js';
@@ -14,6 +14,9 @@ import { CalculationService } from './services/calculation-service.js';
 import { FocusService } from './services/focus-service.js';
 import { FileService } from './services/file-service.js';
 import { UIService } from './services/ui-service.js';
+
+// --- [NEW] Import the new view module ---
+import { QuickQuoteView } from './ui/views/quick-quote-view.js';
 
 
 const AUTOSAVE_STORAGE_KEY = 'quoteAutoSaveData';
@@ -45,7 +48,7 @@ class App {
         
         const productFactory = new ProductFactory();
 
-        // 1. 實例化所有獨立的 Service
+        // 1. Instantiate all independent Services
         const quoteService = new QuoteService({
             initialState: startingState,
             productFactory: productFactory
@@ -57,28 +60,34 @@ class App {
         });
 
         const fileService = new FileService();
-
         const uiService = new UIService(startingState.ui);
-
-        // --- [重構] 將 uiService 和 quoteService 注入到 FocusService ---
         const focusService = new FocusService({
             uiService: uiService,
             quoteService: quoteService
         });
 
-        // 2. 實例化 AppController，並注入所有它需要的 Service
-        this.appController = new AppController({
-            productFactory: productFactory,
-            configManager: this.configManager,
+        // 2. [NEW] Instantiate the View module
+        const quickQuoteView = new QuickQuoteView({
+            quoteService,
+            calculationService,
+            focusService,
+            fileService,
+            uiService,
             eventAggregator: this.eventAggregator,
-            quoteService: quoteService,
-            calculationService: calculationService,
-            focusService: focusService,
-            fileService: fileService,
-            uiService: uiService
+            productFactory,
+            publishStateChangeCallback: () => this.eventAggregator.publish('stateChanged', this.appController._getFullState())
         });
         
-        // 3. 實例化 UIManager
+        // 3. Instantiate AppController, injecting only the services it directly needs + the new view
+        this.appController = new AppController({
+            eventAggregator: this.eventAggregator,
+            uiService,
+            quoteService,
+            fileService,
+            quickQuoteView // Inject the view instance
+        });
+        
+        // 4. Instantiate UIManager
         this.uiManager = new UIManager(
             document.getElementById('app'), 
             this.eventAggregator

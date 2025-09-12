@@ -1,4 +1,4 @@
-// /04-core-code/strategies/roller-blind-strategy.js
+// File: 04-core-code/strategies/roller-blind-strategy.js
 
 /**
  * @fileoverview Contains all business logic specific to the Roller Blind product.
@@ -61,12 +61,22 @@ export class RollerBlindStrategy {
     getInitialItemData() {
         return {
             itemId: `item-${Date.now()}`,
+            // --- Phase 1 Fields ---
             width: null,
             height: null,
             fabricType: null,
-            linePrice: null
-            // 未来可以为不同产品增加不同的初始栏位
-            // e.g., productType: 'rollerBlind'
+            linePrice: null,
+            // --- [NEW] Phase 2 Fields ---
+            location: '',       // K1: 安裝處所
+            fabric: '',         // K1: 布料名稱
+            color: '',          // K1: 布料顏色
+            over: '',           // K2: 正反捲 (O / '')
+            oi: '',             // K2: 內外裝 (IN / OUT)
+            lr: '',             // K2: 左右拉繩 (L / R)
+            sd: '',             // K3: 單雙層支架 (D / '')
+            chain: null,        // K3: 拉繩長度 (mm)
+            winder: '',         // K4: 強化捲軸器 (HD / '')
+            motor: ''           // K4: 電動馬達 (B-motor / '')
         };
     }
 }

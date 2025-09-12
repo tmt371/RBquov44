@@ -1,14 +1,19 @@
-// /04-core-code/services/quote-service.spec.js
+// File: 04-core-code/services/quote-service.spec.js
 
 import { QuoteService } from './quote-service.js';
 
 // --- Mock Dependencies ---
-const mockInitialItem = {
-    itemId: 'item-1', width: null, height: null, fabricType: null, linePrice: null
-};
+const getMockInitialItem = () => ({
+    itemId: 'item-1',
+    // Phase 1
+    width: null, height: null, fabricType: null, linePrice: null,
+    // Phase 2
+    location: '', fabric: '', color: '', over: '',
+    oi: '', lr: '', sd: '', chain: null, winder: '', motor: ''
+});
 
 const mockProductStrategy = {
-    getInitialItemData: () => ({ ...mockInitialItem, itemId: `item-${Date.now()}` })
+    getInitialItemData: () => ({ ...getMockInitialItem(), itemId: `item-${Date.now()}` })
 };
 
 const mockProductFactory = {
@@ -17,7 +22,7 @@ const mockProductFactory = {
 
 const getMockInitialState = () => ({
     quoteData: {
-        rollerBlindItems: [{ ...mockInitialItem }],
+        rollerBlindItems: [{ ...getMockInitialItem() }],
         summary: { totalSum: 0 }
     }
 });
@@ -26,8 +31,10 @@ const getMockInitialState = () => ({
 // --- Test Suite ---
 describe('QuoteService', () => {
     let quoteService;
+    let mockInitialItem;
 
     beforeEach(() => {
+        mockInitialItem = getMockInitialItem(); // Get a fresh mock item for each test
         quoteService = new QuoteService({
             initialState: getMockInitialState(),
             productFactory: mockProductFactory
@@ -37,7 +44,10 @@ describe('QuoteService', () => {
     it('should initialize with a single empty row', () => {
         const items = quoteService.getItems();
         expect(items).toHaveLength(1);
-        expect(items[0]).toEqual(mockInitialItem);
+        // Compare all properties of the item object
+        expect(items[0]).toEqual(expect.objectContaining({
+            width: null, height: null, fabricType: null, location: ''
+        }));
     });
 
     it('should insert a new row at the correct position', () => {

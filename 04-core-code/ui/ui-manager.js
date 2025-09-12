@@ -1,4 +1,4 @@
-// /04-core-code/ui/ui-manager.js
+// File: 04-core-code/ui/ui-manager.js
 
 import { TableComponent } from './table-component.js';
 import { HeaderComponent } from './header-component.js';
@@ -19,6 +19,7 @@ export class UIManager {
         this.mDelButton = document.getElementById('key-f5');
         const clearButtonOnKeyboard = document.getElementById('key-clear');
         this.clearButton = clearButtonOnKeyboard;
+        this.leftPanel = document.getElementById('left-panel'); // [NEW] Add reference to left panel
         
         // --- 實例化所有子元件 ---
         const tbodyElement = document.querySelector('.results-table tbody');
@@ -50,8 +51,7 @@ export class UIManager {
         });
 
         this.initialize();
-        // --- [新增] 初始化左盤的專屬邏輯 ---
-        this._initializeLeftPanel();
+        this._initializeLeftPanelLayout();
     }
 
     initialize() {
@@ -59,49 +59,45 @@ export class UIManager {
     }
 
     render(state) {
+        // --- Render all sub-components ---
         this.headerComponent.render(state.ui.inputValue);
         this.tableComponent.render(state);
         this.summaryComponent.render(state.quoteData.summary, state.ui.isSumOutdated);
+        
+        // --- Update UI elements based on state ---
         this._updateButtonStates(state);
+        this._updateLeftPanelState(state.ui.currentView); // [NEW] Drive left panel from state
+        
         this._scrollToActiveCell(state);
     }
 
-    // --- [新增] 初始化左盤的所有互動與佈局邏輯 ---
-    _initializeLeftPanel() {
+    // [RENAME] Renamed from _initializeLeftPanel to reflect its new purpose
+    _initializeLeftPanelLayout() {
         const appContainer = document.querySelector('.app-container');
-        const leftPanel = document.getElementById('left-panel');
-        const leftPanelToggle = document.getElementById('left-panel-toggle');
-        const numericKeyboard = document.getElementById('numeric-keyboard-panel');
-        const key7 = document.getElementById('key-7'); // 用於垂直對齊的參考點
+        const leftPanel = this.leftPanel;
+        const numericKeyboard = this.numericKeyboardPanel;
+        const key7 = document.getElementById('key-7');
 
-        if (!leftPanel || !leftPanelToggle) return;
+        if (!leftPanel) return;
 
-        // 負責動態計算佈局的函數
         const adjustLayout = () => {
             if (!appContainer || !numericKeyboard || !key7 || !leftPanel) return;
-
             const containerRect = appContainer.getBoundingClientRect();
             const key7Rect = key7.getBoundingClientRect();
             const rightPageMargin = 40;
-
             leftPanel.style.left = containerRect.left + 'px';
             const newWidth = containerRect.width - rightPageMargin;
             leftPanel.style.width = newWidth + 'px';
             leftPanel.style.top = key7Rect.top + 'px';
-            
-            // 精確計算鍵盤按鍵區的高度
             const keyHeight = key7Rect.height;
-            const gap = 5; // 根據 CSS gap: 5px;
+            const gap = 5;
             const totalKeysHeight = (keyHeight * 4) + (gap * 3);
             leftPanel.style.height = totalKeysHeight + 'px';
         };
 
-        // 綁定滑出/收回事件
-        leftPanelToggle.addEventListener('click', () => {
-            leftPanel.classList.toggle('is-expanded');
-        });
+        // [REMOVED] The direct click handler is now managed by InputHandler and AppController.
+        // leftPanelToggle.addEventListener('click', () => { ... });
         
-        // 綁定分頁切換事件
         const tabs = leftPanel.querySelectorAll('.tab-button');
         const tabContents = leftPanel.querySelectorAll('.tab-content');
         const panelBgColors = {
@@ -114,7 +110,6 @@ export class UIManager {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => t.classList.remove('active'));
                 tabContents.forEach(c => c.classList.remove('active'));
-                
                 tab.classList.add('active');
                 const targetContent = document.querySelector(tab.dataset.tabTarget);
                 if(targetContent) {
@@ -124,9 +119,16 @@ export class UIManager {
             });
         });
 
-        // 初始載入和視窗大小改變時，都重新計算佈局
         adjustLayout();
         window.addEventListener('resize', adjustLayout);
+    }
+    
+    // --- [NEW] Method to control left panel visibility based on state ---
+    _updateLeftPanelState(currentView) {
+        if (this.leftPanel) {
+            const isExpanded = (currentView === 'DETAIL_CONFIG');
+            this.leftPanel.classList.toggle('is-expanded', isExpanded);
+        }
     }
 
     _updateButtonStates(state) {

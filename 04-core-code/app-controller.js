@@ -25,20 +25,13 @@ export class AppController {
         const delegateToView = (handlerName, requiresInitialState = false) => (data) => {
             const currentView = this.uiService.getState().currentView;
 
-            // --- [NEW DIAGNOSTIC LOG] ---
-            console.log(
-                `[AppController] Event received, attempting to delegate '${handlerName}'. currentView is: %c'${currentView}'`,
-                'color: blue; font-weight: bold;',
-                '| Data:', data || 'None'
-            );
-
+            // [REMOVED] Diagnostic log removed.
+            
             if (currentView === 'QUICK_QUOTE' && this.quickQuoteView && typeof this.quickQuoteView[handlerName] === 'function') {
                 const args = requiresInitialState ? [initialState.ui] : [data];
                 this.quickQuoteView[handlerName](...args);
             } else if (currentView === 'DETAIL_CONFIG' && this.detailConfigView && typeof this.detailConfigView[handlerName] === 'function') {
                 this.detailConfigView[handlerName](data);
-            } else {
-                console.warn(`[AppController] Event '${handlerName}' was not handled by any active view.`);
             }
         };
 

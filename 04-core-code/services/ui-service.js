@@ -13,8 +13,8 @@ export class UIService {
         this.state.isMultiDeleteMode = false;
         this.state.multiDeleteSelectedIndexes = new Set();
         
-        // --- [NEW DIAGNOSTIC LOG] ---
-        console.log(`[UIService] Initialized. Initial currentView is: %c'${this.state.currentView}'`, 'color: green; font-weight: bold;');
+        // [REMOVED] Diagnostic log removed.
+        console.log("UIService Initialized.");
     }
 
     /**
@@ -128,7 +128,6 @@ export class UIService {
         this.state.isSumOutdated = isOutdated;
     }
 
-    // --- [NEW] SPA View Management Methods ---
     /**
      * Sets the current active view for the SPA.
      * @param {string} viewName - e.g., 'QUICK_QUOTE', 'DETAIL_CONFIG'.

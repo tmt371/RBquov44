@@ -24,8 +24,6 @@ export class AppController {
     initialize() {
         const delegateToView = (handlerName, requiresInitialState = false) => (data) => {
             const currentView = this.uiService.getState().currentView;
-
-            // [REMOVED] Diagnostic log removed.
             
             if (currentView === 'QUICK_QUOTE' && this.quickQuoteView && typeof this.quickQuoteView[handlerName] === 'function') {
                 const args = requiresInitialState ? [initialState.ui] : [data];
@@ -35,6 +33,7 @@ export class AppController {
             }
         };
 
+        // Quick Quote View Events
         this.eventAggregator.subscribe('numericKeyPressed', delegateToView('handleNumericKeyPress'));
         this.eventAggregator.subscribe('tableCellClicked', delegateToView('handleTableCellClick'));
         this.eventAggregator.subscribe('sequenceCellClicked', delegateToView('handleSequenceCellClick'));
@@ -50,6 +49,11 @@ export class AppController {
         this.eventAggregator.subscribe('userRequestedMultiDeleteMode', delegateToView('handleToggleMultiDeleteMode'));
         this.eventAggregator.subscribe('userChoseSaveThenLoad', delegateToView('handleSaveThenLoad'));
 
+        // --- [NEW] Detail Config View Events ---
+        this.eventAggregator.subscribe('userRequestedFocusMode', delegateToView('handleFocusModeRequest'));
+        this.eventAggregator.subscribe('userRequestedBatchUpdate', delegateToView('handleBatchUpdateRequest'));
+
+        // Global App-Level Events
         this.eventAggregator.subscribe('userNavigatedToDetailView', () => this._handleNavigationToDetailView());
         this.eventAggregator.subscribe('userRequestedLoad', () => this._handleUserRequestedLoad());
         this.eventAggregator.subscribe('userChoseLoadDirectly', () => this._handleLoadDirectly());

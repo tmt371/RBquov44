@@ -43,8 +43,9 @@ export class DetailConfigView {
             this._updatePanelInputsState(); 
         } else {
             this.uiService.setVisibleColumns(['sequence', column]);
+            // For location, immediately set active cell to start editing
+            this.uiService.setActiveCell(0, column);
         }
-        this.uiService.setActiveCell(0, column);
         this.publish();
     }
 
@@ -63,12 +64,17 @@ export class DetailConfigView {
         const inputs = Array.from(document.querySelectorAll('.panel-input:not([disabled])'));
         const currentIndex = inputs.indexOf(inputElement);
         const nextInput = inputs[currentIndex + 1];
+
         if (nextInput) {
             nextInput.focus();
+        } else {
+            // If it's the last input, blur it to remove focus.
+            inputElement.blur();
         }
     }
 
     handleTableCellInteraction({ rowIndex, column }) {
+        // This handler now ensures any click on a target cell makes it active.
         if (['location', 'fabric', 'color'].includes(column)) {
             this.uiService.setActiveCell(rowIndex, column);
             this.publish();
@@ -76,9 +82,15 @@ export class DetailConfigView {
         }
 
         if (this.propertyOptions[column]) {
+            this.uiService.setActiveCell(rowIndex, column); // Set active for visual feedback
             const options = this.propertyOptions[column];
             this.quoteService.cycleItemProperty(rowIndex, column, options);
             this.publish();
+            // After cycling, we can deactivate the cell
+            setTimeout(() => {
+                this.uiService.setActiveCell(null, null);
+                this.publish();
+            }, 100);
             return;
         }
     }
@@ -101,6 +113,7 @@ export class DetailConfigView {
 
         this.quoteService.updateItemProperty(rowIndex, column, newValue);
 
+        // The last editable row is totalRows - 2 (since the last item is always empty)
         if (rowIndex < totalRows - 2) {
             this.uiService.setActiveCell(rowIndex + 1, column);
         } else {

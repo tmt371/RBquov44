@@ -14,7 +14,7 @@ export class UIService {
         this.state.multiDeleteSelectedIndexes = new Set();
         this.state.locationInputValue = '';
         this.state.targetCell = null;
-        this.state.k1EditMode = null; // [NEW] Replaces isLocationEditMode
+        this.state.activeEditMode = null; // [MODIFIED] Replaces k1EditMode with a generic version
         
         console.log("UIService Initialized.");
     }
@@ -29,7 +29,7 @@ export class UIService {
         this.state.multiDeleteSelectedIndexes = new Set();
         this.state.locationInputValue = '';
         this.state.targetCell = null;
-        this.state.k1EditMode = null; // [MODIFIED] Reset the new state property
+        this.state.activeEditMode = null; // [MODIFIED] Reset the new state property
     }
 
     setActiveCell(rowIndex, column) {
@@ -103,12 +103,12 @@ export class UIService {
         this.state.targetCell = cell;
     }
     
-    // --- [NEW] Method for the new K1 edit mode state ---
+    // --- [MODIFIED] Method for the new generic edit mode state ---
     /**
-     * Sets the active editing mode for the K1 panel.
-     * @param {string|null} mode - 'location', 'fabric', or null.
+     * Sets the active editing mode for any panel tab.
+     * @param {string|null} mode - 'K1', 'K2', etc., or null.
      */
-    setK1EditMode(mode) {
-        this.state.k1EditMode = mode;
+    setActiveEditMode(mode) {
+        this.state.activeEditMode = mode;
     }
 }

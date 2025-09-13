@@ -24,7 +24,7 @@ export class UIManager {
         this.fabricColorButton = document.getElementById('btn-focus-fabric');
         this.locationInput = document.getElementById('location-input-box');
         
-        this.tabButtons = document.querySelectorAll('.tab-button'); // [NEW] Reference to all tab buttons
+        this.tabButtons = document.querySelectorAll('.tab-button');
 
         // --- 實例化所有子元件 ---
         const tableElement = document.getElementById('results-table');
@@ -66,34 +66,40 @@ export class UIManager {
         this._updateButtonStates(state);
         this._updateLeftPanelState(state.ui.currentView);
         this._updatePanelButtonStates(state.ui);
-        this._updateTabStates(state.ui); // [NEW] Centralized tab state rendering
+        this._updateTabStates(state.ui);
         
         this._scrollToActiveCell(state);
     }
 
-    // [NEW] Method to manage tab disabled states
     _updateTabStates(uiState) {
-        const { k1EditMode } = uiState;
-        const isInEditMode = k1EditMode !== null;
+        const { activeEditMode } = uiState;
+        const isInEditMode = activeEditMode !== null;
         
-        const activeTab = document.querySelector('.tab-button.active');
+        let activeTabId = '';
+        if (isInEditMode) {
+            // Determine which tab is active based on the mode
+            if (activeEditMode === 'K1') {
+                activeTabId = 'k1-tab';
+            } else if (activeEditMode === 'K2') {
+                activeTabId = 'k2-tab';
+            }
+            // Add other cases for K3, K4 etc. here in the future
+        }
         
         this.tabButtons.forEach(button => {
             if (isInEditMode) {
-                // If in edit mode, disable all tabs that are NOT active
-                button.disabled = !button.classList.contains('active');
+                button.disabled = button.id !== activeTabId;
             } else {
-                // If not in edit mode, enable all tabs
                 button.disabled = false;
             }
         });
     }
 
     _updatePanelButtonStates(uiState) {
-        const { k1EditMode, locationInputValue } = uiState;
+        const { activeEditMode, locationInputValue } = uiState;
 
         if (this.locationInput) {
-            const isLocationActive = k1EditMode === 'location';
+            const isLocationActive = activeEditMode === 'K1';
             this.locationInput.disabled = !isLocationActive;
             this.locationInput.classList.toggle('active', isLocationActive);
             if (this.locationInput.value !== locationInputValue) {
@@ -102,13 +108,13 @@ export class UIManager {
         }
         
         if (this.locationButton && this.fabricColorButton) {
-            this.locationButton.classList.toggle('active', k1EditMode === 'location');
-            this.fabricColorButton.classList.toggle('active', k1EditMode === 'fabric');
+            this.locationButton.classList.toggle('active', activeEditMode === 'K1');
+            this.fabricColorButton.classList.toggle('active', activeEditMode === 'K2');
 
-            this.locationButton.disabled = (k1EditMode === 'fabric');
-            this.fabricColorButton.disabled = (k1EditMode === 'location');
-            this.locationButton.classList.toggle('disabled-by-mode', k1EditMode === 'fabric');
-            this.fabricColorButton.classList.toggle('disabled-by-mode', k1EditMode === 'location');
+            this.locationButton.disabled = (activeEditMode === 'K2');
+            this.fabricColorButton.disabled = (activeEditMode === 'K1');
+            this.locationButton.classList.toggle('disabled-by-mode', activeEditMode === 'K2');
+            this.fabricColorButton.classList.toggle('disabled-by-mode', activeEditMode === 'K1');
         }
     }
 

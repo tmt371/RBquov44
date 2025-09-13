@@ -16,22 +16,24 @@ export class DetailConfigView {
             lr: ['', 'L', 'R']
         };
 
-        // All direct DOM element references are removed. UIManager is the single source of truth for rendering.
+        // All direct DOM event listeners are removed from the view.
         console.log("DetailConfigView Initialized (Pure Logic View).");
     }
 
     handleFocusModeRequest({ column }) {
-        const currentMode = this.uiService.getState().k1EditMode;
+        const currentMode = this.uiService.getState().activeEditMode;
 
         if (column === 'location') {
-            const newMode = currentMode === 'location' ? null : 'location';
+            // Toggling 'location' mode within K1
+            const newMode = currentMode === 'K1' ? null : 'K1';
             this._toggleLocationEditMode(newMode);
             return;
         }
 
         if (column === 'fabric') {
-            const newMode = currentMode === 'fabric' ? null : 'fabric';
-            this.uiService.setK1EditMode(newMode);
+            // Toggling 'fabric' mode within K2
+            const newMode = currentMode === 'K2' ? null : 'K2';
+            this.uiService.setActiveEditMode(newMode);
 
             if (newMode) {
                 this._resyncFabricAndColorData();
@@ -39,7 +41,7 @@ export class DetailConfigView {
                 this._updatePanelInputsState(); 
                 this.uiService.setActiveCell(null, null);
             } else {
-                // When exiting fabric mode, revert to a default view or clear focus
+                // When exiting fabric mode, revert to a default detail view
                 this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'location']);
             }
         } 
@@ -47,7 +49,7 @@ export class DetailConfigView {
     }
     
     _toggleLocationEditMode(newMode) {
-        this.uiService.setK1EditMode(newMode);
+        this.uiService.setActiveEditMode(newMode);
 
         if (newMode) {
             this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'location']);
@@ -115,8 +117,8 @@ export class DetailConfigView {
     }
 
     handleSequenceCellClick({ rowIndex }) {
-        const { k1EditMode } = this.uiService.getState();
-        if (k1EditMode === 'location') {
+        const { activeEditMode } = this.uiService.getState();
+        if (activeEditMode === 'K1') { // Check for the generic K1 edit mode
             this.uiService.setTargetCell({ rowIndex, column: 'location' });
             const item = this.quoteService.getItems()[rowIndex];
             this.uiService.setLocationInputValue(item.location || '');

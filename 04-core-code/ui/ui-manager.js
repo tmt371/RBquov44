@@ -20,6 +20,11 @@ export class UIManager {
         this.clearButton = clearButtonOnKeyboard;
         this.leftPanel = document.getElementById('left-panel');
         
+        // [NEW] Add references to K1 buttons for state management
+        this.locationButton = document.getElementById('btn-focus-location');
+        this.fabricColorButton = document.getElementById('btn-focus-fabric');
+        this.locationInput = document.getElementById('location-input-box');
+        
         // --- 實例化所有子元件 ---
         const tableElement = document.getElementById('results-table');
         this.tableComponent = new TableComponent(tableElement);
@@ -54,21 +59,46 @@ export class UIManager {
     }
 
     render(state) {
-        // --- Render all sub-components ---
         this.tableComponent.render(state);
         this.summaryComponent.render(state.quoteData.summary, state.ui.isSumOutdated);
         
         // --- Update UI elements based on state ---
         this._updateButtonStates(state);
         this._updateLeftPanelState(state.ui.currentView);
-        
-        // [REMOVED] This is no longer needed as TableComponent handles it directly.
-        // this._updateInputDisplay(state.ui.inputValue); 
+        this._updatePanelButtonStates(state.ui); // [NEW] Centralized panel button rendering
         
         this._scrollToActiveCell(state);
     }
 
+    // [NEW] Centralized method to manage K1 button states
+    _updatePanelButtonStates(uiState) {
+        const { isLocationEditMode, locationInputValue } = uiState;
+
+        // Sync Location Input Box
+        if (this.locationInput) {
+            this.locationInput.disabled = !isLocationEditMode;
+            this.locationInput.classList.toggle('active', isLocationEditMode);
+            if (this.locationInput.value !== locationInputValue) {
+                this.locationInput.value = locationInputValue;
+            }
+        }
+        
+        // Sync Location and FC Button states
+        if (this.locationButton && this.fabricColorButton) {
+            if (isLocationEditMode) {
+                this.locationButton.classList.add('active');
+                this.fabricColorButton.classList.add('disabled-by-mode');
+                this.fabricColorButton.disabled = true;
+            } else {
+                this.locationButton.classList.remove('active');
+                this.fabricColorButton.classList.remove('disabled-by-mode');
+                this.fabricColorButton.disabled = false;
+            }
+        }
+    }
+
     _initializeLeftPanelLayout() {
+        // ... (this method is unchanged)
         const appContainer = document.querySelector('.app-container');
         const leftPanel = this.leftPanel;
         const numericKeyboard = this.numericKeyboardPanel;
@@ -124,6 +154,7 @@ export class UIManager {
     }
 
     _updateButtonStates(state) {
+        // ... (this method is for right panel buttons and is unchanged)
         const { selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes } = state.ui;
         const items = state.quoteData.rollerBlindItems;
         const isSingleRowSelected = selectedRowIndex !== null;
@@ -161,6 +192,7 @@ export class UIManager {
     
     _scrollToActiveCell(state) {
         setTimeout(() => {
+            if (!state.ui.activeCell) return;
             const { rowIndex, column } = state.ui.activeCell;
             const activeCellElement = document.querySelector(`tr[data-row-index="${rowIndex}"] td[data-column="${column}"]`);
             if (activeCellElement) {

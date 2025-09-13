@@ -16,40 +16,9 @@ export class DetailConfigView {
             lr: ['', 'L', 'R']
         };
 
-        this.locationButton = document.getElementById('btn-focus-location');
-        this.locationInput = document.getElementById('location-input-box');
-        this.fabricColorButton = document.getElementById('btn-focus-fabric'); // [NEW] Reference to the other button
-
-        this._initialize();
-        console.log("DetailConfigView Initialized (Corrected Passive View).");
-    }
-
-    _initialize() {
-        this.eventAggregator.subscribe('stateChanged', (state) => this._onStateChanged(state));
-    }
-
-    _onStateChanged(state) {
-        if (state.ui.currentView !== 'DETAIL_CONFIG') return;
-
-        const { isLocationEditMode, locationInputValue } = state.ui;
-
-        if (this.locationInput) {
-            this.locationInput.disabled = !isLocationEditMode;
-            this.locationInput.classList.toggle('active', isLocationEditMode);
-            if (this.locationInput.value !== locationInputValue) {
-                this.locationInput.value = locationInputValue;
-            }
-        }
-        
-        if (this.locationButton) {
-            this.locationButton.classList.toggle('active', isLocationEditMode);
-        }
-
-        // --- [NEW] Manage button disabled state based on mode ---
-        if (this.fabricColorButton) {
-            this.fabricColorButton.classList.toggle('disabled-by-mode', isLocationEditMode);
-            this.fabricColorButton.disabled = isLocationEditMode;
-        }
+        // [REMOVED] All direct DOM element references and listeners are removed from the view.
+        // The view is now only responsible for logic, not rendering.
+        console.log("DetailConfigView Initialized (Pure Logic View).");
     }
 
     handleFocusModeRequest({ column }) {
@@ -72,6 +41,7 @@ export class DetailConfigView {
     _toggleLocationEditMode() {
         const isCurrentlyEditing = this.uiService.getState().isLocationEditMode;
         const newEditState = !isCurrentlyEditing;
+        const locationInput = document.getElementById('location-input-box');
 
         this.uiService.setIsLocationEditMode(newEditState);
 
@@ -80,13 +50,12 @@ export class DetailConfigView {
             const targetRow = 0;
             this.uiService.setTargetCell({ rowIndex: targetRow, column: 'location' });
             
-            // [FIX] Load existing data of the target cell into the input box
             const currentItem = this.quoteService.getItems()[targetRow];
             this.uiService.setLocationInputValue(currentItem.location || '');
             
             setTimeout(() => {
-                this.locationInput.focus();
-                this.locationInput.select();
+                locationInput?.focus();
+                locationInput?.select();
             }, 0);
         } else {
             this.uiService.setTargetCell(null);
@@ -103,15 +72,16 @@ export class DetailConfigView {
 
         const nextRowIndex = targetCell.rowIndex + 1;
         const totalRows = this.quoteService.getItems().length;
+        const locationInput = document.getElementById('location-input-box');
 
         if (nextRowIndex < totalRows - 1) {
             this.uiService.setTargetCell({ rowIndex: nextRowIndex, column: 'location' });
             const nextItem = this.quoteService.getItems()[nextRowIndex];
             this.uiService.setLocationInputValue(nextItem.location || '');
             this.publish();
-            setTimeout(() => this.locationInput.select(), 0);
+            setTimeout(() => locationInput?.select(), 0);
         } else {
-            this._toggleLocationEditMode(); // Auto-exit after the last item
+            this._toggleLocationEditMode();
         }
     }
 
@@ -146,9 +116,10 @@ export class DetailConfigView {
             const item = this.quoteService.getItems()[rowIndex];
             this.uiService.setLocationInputValue(item.location || '');
             this.publish();
+            const locationInput = document.getElementById('location-input-box');
             setTimeout(() => {
-                this.locationInput.focus();
-                this.locationInput.select();
+                locationInput?.focus();
+                locationInput?.select();
             }, 0);
         }
     }

@@ -13,7 +13,7 @@ export class InputHandler {
         this._setupFileLoader();
         this._setupPhysicalKeyboard();
         this._setupNavigation();
-        this._setupLeftPanelInputs(); // [NEW] Add left panel input setup
+        this._setupLeftPanelInputs();
     }
     
     _setupNavigation() {
@@ -25,7 +25,6 @@ export class InputHandler {
         }
     }
 
-    // --- [NEW] Setup event listeners for buttons inside the left panel ---
     _setupLeftPanelInputs() {
         const setupFocusButton = (buttonId, column) => {
             const button = document.getElementById(buttonId);
@@ -36,10 +35,32 @@ export class InputHandler {
             }
         };
 
+        const setupBatchButton = (buttonId, column, value) => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.addEventListener('click', () => {
+                    this.eventAggregator.publish('userRequestedBatchUpdate', { column, value });
+                });
+            }
+        };
+
         // K1 Tab Buttons
         setupFocusButton('btn-focus-location', 'location');
         setupFocusButton('btn-focus-fabric', 'fabric');
         setupFocusButton('btn-focus-color', 'color');
+
+        // K2 Tab Buttons
+        setupFocusButton('btn-focus-over', 'over');
+        setupBatchButton('btn-batch-over-o', 'over', 'O');
+        setupBatchButton('btn-batch-over-normal', 'over', '');
+
+        setupFocusButton('btn-focus-oi', 'oi');
+        setupBatchButton('btn-batch-oi-in', 'oi', 'IN');
+        setupBatchButton('btn-batch-oi-out', 'oi', 'OUT');
+
+        setupFocusButton('btn-focus-lr', 'lr');
+        setupBatchButton('btn-batch-lr-l', 'lr', 'L');
+        setupBatchButton('btn-batch-lr-r', 'lr', 'R');
     }
 
     _setupPhysicalKeyboard() {

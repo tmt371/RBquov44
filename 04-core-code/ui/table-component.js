@@ -15,10 +15,14 @@ const COLUMN_CONFIG = {
         dataColumn: 'Price',
         cellType: 'th'
     },
-    // --- [NEW] Add configuration for K1 columns ---
+    // K1 columns
     location: { header: 'Location', className: 'col-location', dataColumn: 'location', cellType: 'td' },
     fabric: { header: 'Fabric', className: 'col-fabric', dataColumn: 'fabric', cellType: 'td' },
-    color: { header: 'Color', className: 'col-color', dataColumn: 'color', cellType: 'td' }
+    color: { header: 'Color', className: 'col-color', dataColumn: 'color', cellType: 'td' },
+    // --- [NEW] Add configuration for K2 columns ---
+    over: { header: 'Over', className: 'col-over', dataColumn: 'over', cellType: 'td' },
+    oi: { header: 'O/I', className: 'col-oi', dataColumn: 'oi', cellType: 'td' },
+    lr: { header: 'L/R', className: 'col-lr', dataColumn: 'lr', cellType: 'td' },
 };
 
 
@@ -31,18 +35,12 @@ export class TableComponent {
         console.log("TableComponent (Dynamic Engine) Initialized.");
     }
 
-    /**
-     * Renders the entire table dynamically based on the state's visibleColumns.
-     * @param {object} state - The full application state.
-     */
     render(state) {
         const { rollerBlindItems } = state.quoteData;
         const { visibleColumns } = state.ui;
 
-        // Clear previous content
         this.tableElement.innerHTML = '';
 
-        // 1. Create Header (thead)
         const thead = this.tableElement.createTHead();
         const headerRow = thead.insertRow();
         visibleColumns.forEach(key => {
@@ -55,7 +53,6 @@ export class TableComponent {
             headerRow.appendChild(cell);
         });
 
-        // 2. Create Body (tbody)
         const tbody = this.tableElement.createTBody();
         if (rollerBlindItems.length === 0 || (rollerBlindItems.length === 1 && !rollerBlindItems[0].width && !rollerBlindItems[0].height)) {
             const row = tbody.insertRow();
@@ -84,13 +81,9 @@ export class TableComponent {
         });
     }
 
-    /**
-     * Helper method to populate and style a single cell (td).
-     */
     _renderCellContent(cell, key, item, index, state) {
         const { activeCell, selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes } = state.ui;
 
-        // --- Standard cell content and styling ---
         switch (key) {
             case 'sequence':
                 cell.textContent = index + 1;
@@ -120,17 +113,23 @@ export class TableComponent {
                 cell.textContent = item.linePrice ? item.linePrice.toFixed(2) : '';
                 cell.classList.add('price-cell');
                 break;
-            // --- [NEW] Add rendering for K1 columns ---
             case 'location':
             case 'fabric':
             case 'color':
                 cell.textContent = item[key] || '';
                 if (index === activeCell.rowIndex && activeCell.column === key) {
                     cell.classList.add('active-input-cell');
-                    // Transform cell into an input field for editing
                     cell.innerHTML = `<input type="text" value="${item[key] || ''}" class="editable-cell-input" data-row-index="${index}" data-column="${key}" />`;
-                    // Auto-focus the input
                     setTimeout(() => cell.querySelector('input').focus(), 0);
+                }
+                break;
+            // --- [NEW] Add rendering for K2 columns ---
+            case 'over':
+            case 'oi':
+            case 'lr':
+                cell.textContent = item[key] || '';
+                if (index === activeCell.rowIndex && activeCell.column === key) {
+                    cell.classList.add('active-input-cell');
                 }
                 break;
         }

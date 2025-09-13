@@ -94,14 +94,6 @@ export class QuoteService {
         return false;
     }
     
-    // --- [NEW] Generic method for updating any property (especially strings) ---
-    /**
-     * Updates a specific property of an item. Best for non-numeric or simple value assignments.
-     * @param {number} rowIndex The index of the item.
-     * @param {string} property The property key to update.
-     * @param {*} value The new value.
-     * @returns {boolean} True if the value was changed.
-     */
     updateItemProperty(rowIndex, property, value) {
         const item = this._getItems()[rowIndex];
         if (item && item[property] !== value) {
@@ -111,6 +103,52 @@ export class QuoteService {
         return false;
     }
     
+    // --- [NEW] Generic method for cycling through a list of options ---
+    /**
+     * Cycles a property of an item through a list of options.
+     * @param {number} rowIndex The index of the item.
+     * @param {string} property The property key to cycle.
+     * @param {Array<*>} options The array of possible values.
+     * @returns {boolean} True if the value was changed.
+     */
+    cycleItemProperty(rowIndex, property, options) {
+        const item = this._getItems()[rowIndex];
+        if (!item) return false;
+
+        const currentValue = item[property];
+        const currentIndex = options.indexOf(currentValue);
+        const nextIndex = (currentIndex + 1) % options.length;
+        const nextValue = options[nextIndex];
+
+        if (item[property] !== nextValue) {
+            item[property] = nextValue;
+            return true;
+        }
+        return false;
+    }
+
+    // --- [NEW] Method for batch updating a property for all items ---
+    /**
+     * Updates a property for all valid items in the quote.
+     * @param {string} property The property key to update.
+     * @param {*} value The new value to set.
+     * @returns {boolean} True if any value was changed.
+     */
+    batchUpdateProperty(property, value) {
+        const items = this._getItems();
+        let changed = false;
+        items.forEach(item => {
+            // Only update rows with data, not the final empty row
+            if (item.width || item.height) {
+                if (item[property] !== value) {
+                    item[property] = value;
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
+
     cycleItemType(rowIndex) {
         const item = this._getItems()[rowIndex];
         if (!item || (!item.width && !item.height)) return false;

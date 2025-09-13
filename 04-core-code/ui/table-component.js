@@ -10,7 +10,8 @@ const COLUMN_CONFIG = {
     height: { header: 'H', className: 'col-h', dataColumn: 'height', cellType: 'td' },
     TYPE: { header: 'TYPE', className: 'col-type', dataColumn: 'TYPE', cellType: 'td' },
     Price: { 
-        header: '<input type="text" class="input-display-cell" id="input-display-cell" readonly>', 
+        // [MODIFIED] Header is now a function that uses the state to set the input value directly.
+        header: (state) => `<input type="text" class="input-display-cell" id="input-display-cell" value="${state.ui.inputValue || ''}" readonly>`, 
         className: 'input-display-header col-price', 
         dataColumn: 'Price',
         cellType: 'th'
@@ -19,7 +20,7 @@ const COLUMN_CONFIG = {
     location: { header: 'Location', className: 'col-location', dataColumn: 'location', cellType: 'td' },
     fabric: { header: 'Fabric', className: 'col-fabric', dataColumn: 'fabric', cellType: 'td' },
     color: { header: 'Color', className: 'col-color', dataColumn: 'color', cellType: 'td' },
-    // --- [NEW] Add configuration for K2 columns ---
+    // K2 columns
     over: { header: 'Over', className: 'col-over', dataColumn: 'over', cellType: 'td' },
     oi: { header: 'O/I', className: 'col-oi', dataColumn: 'oi', cellType: 'td' },
     lr: { header: 'L/R', className: 'col-lr', dataColumn: 'lr', cellType: 'td' },
@@ -49,7 +50,13 @@ export class TableComponent {
 
             const cell = document.createElement(config.cellType);
             cell.className = config.className;
-            cell.innerHTML = config.header;
+            
+            // [MODIFIED] Check if the header config is a function and call it with the state
+            if (typeof config.header === 'function') {
+                cell.innerHTML = config.header(state);
+            } else {
+                cell.innerHTML = config.header;
+            }
             headerRow.appendChild(cell);
         });
 
@@ -123,7 +130,6 @@ export class TableComponent {
                     setTimeout(() => cell.querySelector('input').focus(), 0);
                 }
                 break;
-            // --- [NEW] Add rendering for K2 columns ---
             case 'over':
             case 'oi':
             case 'lr':

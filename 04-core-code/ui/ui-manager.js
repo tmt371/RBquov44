@@ -1,8 +1,6 @@
 // File: 04-core-code/ui/ui-manager.js
 
 import { TableComponent } from './table-component.js';
-// [REMOVED] HeaderComponent is no longer needed as a separate module.
-// import { HeaderComponent } from './header-component.js'; 
 import { SummaryComponent } from './summary-component.js';
 import { PanelComponent } from './panel-component.js';
 import { NotificationComponent } from './notification-component.js';
@@ -23,13 +21,8 @@ export class UIManager {
         this.leftPanel = document.getElementById('left-panel');
         
         // --- 實例化所有子元件 ---
-        // [MODIFIED] Pass the entire table element to the new TableComponent
         const tableElement = document.getElementById('results-table');
         this.tableComponent = new TableComponent(tableElement);
-
-        // [REMOVED] HeaderComponent is now managed by TableComponent.
-        // const inputElement = document.getElementById('input-display-cell');
-        // this.headerComponent = new HeaderComponent(inputElement);
 
         const summaryElement = document.getElementById('total-sum-value');
         this.summaryComponent = new SummaryComponent(summaryElement);
@@ -61,9 +54,6 @@ export class UIManager {
     }
 
     render(state) {
-        // [REMOVED] HeaderComponent render call is no longer needed.
-        // this.headerComponent.render(state.ui.inputValue);
-        
         // --- Render all sub-components ---
         this.tableComponent.render(state);
         this.summaryComponent.render(state.quoteData.summary, state.ui.isSumOutdated);
@@ -71,7 +61,9 @@ export class UIManager {
         // --- Update UI elements based on state ---
         this._updateButtonStates(state);
         this._updateLeftPanelState(state.ui.currentView);
-        this._updateInputDisplay(state.ui.inputValue); // [NEW] Manually update the input display
+        
+        // [REMOVED] This is no longer needed as TableComponent handles it directly.
+        // this._updateInputDisplay(state.ui.inputValue); 
         
         this._scrollToActiveCell(state);
     }
@@ -122,14 +114,6 @@ export class UIManager {
 
         adjustLayout();
         window.addEventListener('resize', adjustLayout);
-    }
-    
-    // [NEW] Since the input display is now dynamically created, UIManager needs to update it directly.
-    _updateInputDisplay(inputValue) {
-        const inputDisplay = document.getElementById('input-display-cell');
-        if (inputDisplay && inputDisplay.value !== inputValue) {
-            inputDisplay.value = inputValue || '';
-        }
     }
     
     _updateLeftPanelState(currentView) {

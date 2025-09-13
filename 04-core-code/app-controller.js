@@ -55,7 +55,7 @@ export class AppController {
         this.eventAggregator.subscribe('panelInputEnterPressed', delegateToView('handlePanelInputEnter'));
         this.eventAggregator.subscribe('editableCellBlurred', delegateToView('_handleCellInputBlur'));
         this.eventAggregator.subscribe('editableCellEnterPressed', delegateToView('_handleCellInputEnter'));
-        this.eventAggregator.subscribe('locationInputEnterPressed', delegateToView('handleLocationInputEnter')); // [NEW]
+        this.eventAggregator.subscribe('locationInputEnterPressed', delegateToView('handleLocationInputEnter'));
 
 
         // Global App-Level Events
@@ -100,7 +100,8 @@ export class AppController {
     _handleFileLoad({ fileName, content }) {
         const result = this.fileService.parseFileContent(fileName, content);
         if (result.success) {
-            this.quoteData = result.data;
+            // [FIXED] Assign loaded data to the QuoteService, not a local property.
+            this.quoteService.quoteData = result.data;
             this.uiService.reset(initialState.ui);
             this.uiService.setSumOutdated(true);
             this._publishStateChange();

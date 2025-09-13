@@ -18,10 +18,10 @@ export class DetailConfigView {
 
         this.locationButton = document.getElementById('btn-focus-location');
         this.locationInput = document.getElementById('location-input-box');
-        this.fabricColorButton = document.getElementById('btn-focus-fabric');
+        this.fabricColorButton = document.getElementById('btn-focus-fabric'); // [NEW] Reference to the other button
 
         this._initialize();
-        console.log("DetailConfigView Initialized (Passive View).");
+        console.log("DetailConfigView Initialized (Corrected Passive View).");
     }
 
     _initialize() {
@@ -33,7 +33,6 @@ export class DetailConfigView {
 
         const { isLocationEditMode, locationInputValue } = state.ui;
 
-        // Sync Location Input Box
         if (this.locationInput) {
             this.locationInput.disabled = !isLocationEditMode;
             this.locationInput.classList.toggle('active', isLocationEditMode);
@@ -42,25 +41,14 @@ export class DetailConfigView {
             }
         }
         
-        // --- [REFACTORED] Explicit and Robust Button State Management ---
-        if (isLocationEditMode) {
-            // Location button is active (light blue)
-            this.locationButton?.classList.add('active');
-            
-            // Fabric & Color button is disabled (dark gray, unclickable)
-            if (this.fabricColorButton) {
-                this.fabricColorButton.classList.add('disabled-by-mode');
-                this.fabricColorButton.disabled = true;
-            }
-        } else {
-            // Location button is inactive (white)
-            this.locationButton?.classList.remove('active');
+        if (this.locationButton) {
+            this.locationButton.classList.toggle('active', isLocationEditMode);
+        }
 
-            // Fabric & Color button is enabled (white)
-            if (this.fabricColorButton) {
-                this.fabricColorButton.classList.remove('disabled-by-mode');
-                this.fabricColorButton.disabled = false;
-            }
+        // --- [NEW] Manage button disabled state based on mode ---
+        if (this.fabricColorButton) {
+            this.fabricColorButton.classList.toggle('disabled-by-mode', isLocationEditMode);
+            this.fabricColorButton.disabled = isLocationEditMode;
         }
     }
 
@@ -92,6 +80,7 @@ export class DetailConfigView {
             const targetRow = 0;
             this.uiService.setTargetCell({ rowIndex: targetRow, column: 'location' });
             
+            // [FIX] Load existing data of the target cell into the input box
             const currentItem = this.quoteService.getItems()[targetRow];
             this.uiService.setLocationInputValue(currentItem.location || '');
             
@@ -122,7 +111,7 @@ export class DetailConfigView {
             this.publish();
             setTimeout(() => this.locationInput.select(), 0);
         } else {
-            this._toggleLocationEditMode();
+            this._toggleLocationEditMode(); // Auto-exit after the last item
         }
     }
 

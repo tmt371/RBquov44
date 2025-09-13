@@ -16,33 +16,16 @@ export class DetailConfigView {
             lr: ['', 'L', 'R']
         };
 
-        this._initialize();
-        console.log("DetailConfigView Initialized (Passive View).");
-    }
-
-    _initialize() {
-        const table = document.getElementById('results-table');
-        
-        table.addEventListener('blur', (event) => {
-            if (event.target.matches('.editable-cell-input')) {
-                this._handleCellInputBlur(event.target);
-            }
-        }, true);
-
-        table.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' && event.target.matches('.editable-cell-input')) {
-                event.preventDefault();
-                this._handleCellInputEnter(event.target);
-            }
-        }, true);
+        // [REMOVED] All direct DOM event listeners are removed from the view.
+        console.log("DetailConfigView Initialized (Corrected Passive View).");
     }
 
     handleFocusModeRequest({ column }) {
         if (column === 'fabric') {
-            this._resyncFabricAndColorData(); // [NEW] Re-apply batch data first
+            this._resyncFabricAndColorData();
             this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
             this._updatePanelInputsState(); 
-            this.uiService.setActiveCell(null, null); // Ensure no focus in main table
+            this.uiService.setActiveCell(null, null);
         } else {
             this.uiService.setVisibleColumns(['sequence', column]);
             this.uiService.setActiveCell(0, column);
@@ -82,6 +65,7 @@ export class DetailConfigView {
 
         if (this.propertyOptions[column]) {
             this.uiService.setActiveCell(rowIndex, column);
+            const options = this.propertyOptions[column];
             this.quoteService.cycleItemProperty(rowIndex, column, options);
             this.publish();
             setTimeout(() => {
@@ -92,23 +76,18 @@ export class DetailConfigView {
         }
     }
 
-    _handleCellInputBlur(inputElement) {
-        const rowIndex = parseInt(inputElement.dataset.rowIndex, 10);
-        const column = inputElement.dataset.column;
-        const newValue = inputElement.value;
-
-        this.quoteService.updateItemProperty(rowIndex, column, newValue);
+    // [MODIFIED] Method name changed to be public, now called by AppController
+    _handleCellInputBlur({ rowIndex, column, value }) {
+        this.quoteService.updateItemProperty(rowIndex, column, value);
         this.uiService.setActiveCell(null, null);
         this.publish();
     }
 
-    _handleCellInputEnter(inputElement) {
-        const rowIndex = parseInt(inputElement.dataset.rowIndex, 10);
-        const column = inputElement.dataset.column;
-        const newValue = inputElement.value;
+    // [MODIFIED] Method name changed to be public, now called by AppController
+    _handleCellInputEnter({ rowIndex, column, value }) {
         const totalRows = this.quoteService.getItems().length;
 
-        this.quoteService.updateItemProperty(rowIndex, column, newValue);
+        this.quoteService.updateItemProperty(rowIndex, column, value);
 
         const nextRowIndex = rowIndex + 1;
         if (nextRowIndex < totalRows - 1) {
@@ -142,7 +121,7 @@ export class DetailConfigView {
             const type = input.dataset.type;
             const field = input.dataset.field;
             const value = input.value;
-            if (value) { // Only re-apply if there is a value
+            if (value) {
                 this.quoteService.batchUpdatePropertyByType(type, field, value);
             }
         });

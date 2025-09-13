@@ -53,11 +53,13 @@ export class AppController {
         this.eventAggregator.subscribe('userRequestedFocusMode', delegateToView('handleFocusModeRequest'));
         this.eventAggregator.subscribe('userRequestedBatchUpdate', delegateToView('handleBatchUpdateRequest'));
         this.eventAggregator.subscribe('panelInputEnterPressed', delegateToView('handlePanelInputEnter'));
+        this.eventAggregator.subscribe('editableCellBlurred', delegateToView('_handleCellInputBlur')); // [NEW]
+        this.eventAggregator.subscribe('editableCellEnterPressed', delegateToView('_handleCellInputEnter')); // [NEW]
 
 
         // Global App-Level Events
         this.eventAggregator.subscribe('userNavigatedToDetailView', () => this._handleNavigationToDetailView());
-        this.eventAggregator.subscribe('userNavigatedToQuickQuoteView', () => this._handleNavigationToQuickQuoteView()); // [NEW]
+        this.eventAggregator.subscribe('userNavigatedToQuickQuoteView', () => this._handleNavigationToQuickQuoteView());
         this.eventAggregator.subscribe('userRequestedLoad', () => this._handleUserRequestedLoad());
         this.eventAggregator.subscribe('userChoseLoadDirectly', () => this._handleLoadDirectly());
         this.eventAggregator.subscribe('fileLoaded', (data) => this._handleFileLoad(data));
@@ -71,15 +73,14 @@ export class AppController {
             this.uiService.setCurrentView('DETAIL_CONFIG');
         } else {
             this.uiService.setCurrentView('QUICK_QUOTE');
-            this.uiService.setVisibleColumns(initialState.ui.visibleColumns); // Reset columns when toggling back
+            this.uiService.setVisibleColumns(initialState.ui.visibleColumns);
         }
         this._publishStateChange();
     }
 
-    // --- [NEW] Handler for returning to the main form ---
     _handleNavigationToQuickQuoteView() {
         this.uiService.setCurrentView('QUICK_QUOTE');
-        this.uiService.setVisibleColumns(initialState.ui.visibleColumns); // Reset columns
+        this.uiService.setVisibleColumns(initialState.ui.visibleColumns);
         this._publishStateChange();
     }
 

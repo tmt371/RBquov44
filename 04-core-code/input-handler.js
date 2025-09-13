@@ -71,7 +71,7 @@ export class InputHandler {
         if (batchTable) {
             batchTable.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter' && event.target.matches('.panel-input')) {
-                    event.preventDefault(); // Prevent default form submission
+                    event.preventDefault();
                     const input = event.target;
                     this.eventAggregator.publish('panelInputEnterPressed', {
                         type: input.dataset.type,
@@ -216,26 +216,46 @@ export class InputHandler {
     _setupTableInteraction() {
         const table = document.getElementById('results-table');
         if (table) {
+            // --- Click Listener (existing) ---
             table.addEventListener('click', (event) => {
                 const target = event.target;
-                const isHeader = target.tagName === 'TH';
-                const isCell = target.tagName === 'TD';
-                
-                if (target.id === 'input-display-cell') return;
-                if (!isHeader && !isCell) return;
-
-                const column = target.dataset.column;
-                const rowIndex = target.parentElement.dataset.rowIndex;
-
-                if (isCell) {
-                    const eventData = { rowIndex: parseInt(rowIndex, 10), column };
-                    if (column === 'sequence') {
-                        this.eventAggregator.publish('sequenceCellClicked', eventData);
-                    } else {
-                        this.eventAggregator.publish('tableCellClicked', eventData);
+                if (target.tagName === 'TD') {
+                    const column = target.dataset.column;
+                    const rowIndex = target.parentElement.dataset.rowIndex;
+                    if (column && rowIndex) {
+                         const eventData = { rowIndex: parseInt(rowIndex, 10), column };
+                        if (column === 'sequence') {
+                            this.eventAggregator.publish('sequenceCellClicked', eventData);
+                        } else {
+                            this.eventAggregator.publish('tableCellClicked', eventData);
+                        }
                     }
                 }
             });
+
+            // --- [NEW] Blur and Keydown listeners for editable cells ---
+            table.addEventListener('blur', (event) => {
+                if (event.target.matches('.editable-cell-input')) {
+                    const input = event.target;
+                    this.eventAggregator.publish('editableCellBlurred', {
+                        rowIndex: parseInt(input.dataset.rowIndex, 10),
+                        column: input.dataset.column,
+                        value: input.value
+                    });
+                }
+            }, true);
+
+            table.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && event.target.matches('.editable-cell-input')) {
+                    event.preventDefault();
+                    const input = event.target;
+                    this.eventAggregator.publish('editableCellEnterPressed', {
+                        rowIndex: parseInt(input.dataset.rowIndex, 10),
+                        column: input.dataset.column,
+                        value: input.value
+                    });
+                }
+            }, true);
         }
     }
 }

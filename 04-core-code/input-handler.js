@@ -46,7 +46,7 @@ export class InputHandler {
 
         // K1 Tab Buttons
         setupFocusButton('btn-focus-location', 'location');
-        setupFocusButton('btn-focus-fabric', 'fabric'); // This button's behavior will be complex
+        setupFocusButton('btn-focus-fabric', 'fabric');
 
         // K2 Tab Buttons
         setupFocusButton('btn-focus-over', 'over');
@@ -59,7 +59,14 @@ export class InputHandler {
         setupBatchButton('btn-batch-lr-l', 'lr', 'L');
         setupBatchButton('btn-batch-lr-r', 'lr', 'R');
 
-        // --- [NEW] Event listener for the K1 panel input table ---
+        // K5 Tab Buttons
+        const returnButton = document.getElementById('btn-return-form1');
+        if (returnButton) {
+            returnButton.addEventListener('click', () => {
+                this.eventAggregator.publish('userNavigatedToQuickQuoteView');
+            });
+        }
+
         const batchTable = document.getElementById('fabric-batch-table');
         if (batchTable) {
             batchTable.addEventListener('keydown', (event) => {

@@ -23,7 +23,6 @@ export class DetailConfigView {
     _initialize() {
         const table = document.getElementById('results-table');
         
-        // Listen for blur and keydown events bubbling up from the table
         table.addEventListener('blur', (event) => {
             if (event.target.matches('.editable-cell-input')) {
                 this._handleCellInputBlur(event.target);
@@ -41,7 +40,7 @@ export class DetailConfigView {
     handleFocusModeRequest({ column }) {
         if (column === 'fabric') {
             this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
-            this._updatePanelInputsState(); // Enable/disable panel inputs based on quote data
+            this._updatePanelInputsState(); 
         } else {
             this.uiService.setVisibleColumns(['sequence', column]);
         }
@@ -55,35 +54,32 @@ export class DetailConfigView {
     }
 
     handlePanelInputEnter({ type, field }) {
-        // 1. Trigger the batch update for the current input
         const inputElement = document.querySelector(`.panel-input[data-type="${type}"][data-field="${field}"]`);
         if (inputElement) {
             this.quoteService.batchUpdatePropertyByType(type, field, inputElement.value);
             this.publish();
         }
 
-        // 2. Focus the next input in sequence
         const inputs = Array.from(document.querySelectorAll('.panel-input:not([disabled])'));
         const currentIndex = inputs.indexOf(inputElement);
         const nextInput = inputs[currentIndex + 1];
         if (nextInput) {
             nextInput.focus();
-        } else {
-            // If it's the last input, maybe focus the first one again or do nothing
         }
     }
 
     handleTableCellInteraction({ rowIndex, column }) {
-        if (['location', 'fabric', 'color'].includes(column) || this.propertyOptions[column]) {
+        if (['location', 'fabric', 'color'].includes(column)) {
             this.uiService.setActiveCell(rowIndex, column);
             this.publish();
-            
-            // For cycleable properties, perform the action immediately
-            if (this.propertyOptions[column]) {
-                const options = this.propertyOptions[column];
-                this.quoteService.cycleItemProperty(rowIndex, column, options);
-                this.publish();
-            }
+            return;
+        }
+
+        if (this.propertyOptions[column]) {
+            const options = this.propertyOptions[column];
+            this.quoteService.cycleItemProperty(rowIndex, column, options);
+            this.publish();
+            return;
         }
     }
 
@@ -93,7 +89,7 @@ export class DetailConfigView {
         const newValue = inputElement.value;
 
         this.quoteService.updateItemProperty(rowIndex, column, newValue);
-        this.uiService.setActiveCell(null, null); // Deactivate cell editing
+        this.uiService.setActiveCell(null, null);
         this.publish();
     }
 
@@ -103,14 +99,12 @@ export class DetailConfigView {
         const newValue = inputElement.value;
         const totalRows = this.quoteService.getItems().length;
 
-        // 1. Save the current value
         this.quoteService.updateItemProperty(rowIndex, column, newValue);
 
-        // 2. Move to the next row if not the last one
-        if (rowIndex < totalRows - 2) { // -2 because the last row is the empty one
+        if (rowIndex < totalRows - 2) {
             this.uiService.setActiveCell(rowIndex + 1, column);
         } else {
-            this.uiService.setActiveCell(null, null); // Deactivate if it's the last editable row
+            this.uiService.setActiveCell(null, null);
         }
         this.publish();
     }
@@ -121,15 +115,14 @@ export class DetailConfigView {
         
         const allPanelInputs = document.querySelectorAll('.panel-input');
         allPanelInputs.forEach(input => {
-            if (input.dataset.type !== 'LF') { // Always keep LF disabled for now
+            if (input.dataset.type !== 'LF') {
                 input.disabled = !presentTypes.has(input.dataset.type);
             }
         });
 
-        // Focus the first available input
         const firstEnabledInput = document.querySelector('.panel-input:not([disabled])');
         if (firstEnabledInput) {
-            firstEnabledInput.focus();
+            setTimeout(() => firstEnabledInput.focus(), 0);
         }
     }
 }

@@ -10,27 +10,17 @@ export class DetailConfigView {
         this.eventAggregator = eventAggregator;
         this.publish = publishStateChangeCallback;
 
-        // --- [NEW] Define option sequences for cycleable properties ---
         this.propertyOptions = {
             over: ['', 'O'],
             oi: ['', 'IN', 'OUT'],
             lr: ['', 'L', 'R']
         };
 
-        this._initialize();
-        console.log("DetailConfigView Initialized.");
-    }
+        // [REMOVED] All event subscriptions are removed from the view.
+        // AppController is now solely responsible for delegating events.
+        // this._initialize(); 
 
-    _initialize() {
-        this.eventAggregator.subscribe('userRequestedFocusMode', (data) => this.handleFocusModeRequest(data));
-        this.eventAggregator.subscribe('tableCellClicked', (data) => this.handleTableCellInteraction(data));
-        this.eventAggregator.subscribe('userRequestedBatchUpdate', (data) => this.handleBatchUpdateRequest(data));
-        
-        document.getElementById('results-table').addEventListener('blur', (event) => {
-            if (event.target.matches('.editable-cell-input')) {
-                this._handleCellInputBlur(event.target);
-            }
-        }, true);
+        console.log("DetailConfigView Initialized (Passive View).");
     }
 
     handleFocusModeRequest({ column }) {
@@ -46,14 +36,12 @@ export class DetailConfigView {
     }
 
     handleTableCellInteraction({ rowIndex, column }) {
-        // --- Logic for K1 editable text fields ---
         if (['location', 'fabric', 'color'].includes(column)) {
             this.uiService.setActiveCell(rowIndex, column);
             this.publish();
             return;
         }
 
-        // --- [NEW] Logic for K2 cycleable option fields ---
         if (this.propertyOptions[column]) {
             const options = this.propertyOptions[column];
             this.quoteService.cycleItemProperty(rowIndex, column, options);
@@ -61,7 +49,6 @@ export class DetailConfigView {
             return;
         }
 
-        // --- Fallback for other potential interactions ---
         console.log(`Unhandled table cell interaction in Detail view for column: ${column}`);
     }
 

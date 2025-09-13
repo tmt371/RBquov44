@@ -39,11 +39,12 @@ export class DetailConfigView {
 
     handleFocusModeRequest({ column }) {
         if (column === 'fabric') {
+            this._resyncFabricAndColorData(); // [NEW] Re-apply batch data first
             this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
             this._updatePanelInputsState(); 
+            this.uiService.setActiveCell(null, null); // Ensure no focus in main table
         } else {
             this.uiService.setVisibleColumns(['sequence', column]);
-            // For location, immediately set active cell to start editing
             this.uiService.setActiveCell(0, column);
         }
         this.publish();
@@ -68,13 +69,11 @@ export class DetailConfigView {
         if (nextInput) {
             nextInput.focus();
         } else {
-            // If it's the last input, blur it to remove focus.
             inputElement.blur();
         }
     }
 
     handleTableCellInteraction({ rowIndex, column }) {
-        // This handler now ensures any click on a target cell makes it active.
         if (['location', 'fabric', 'color'].includes(column)) {
             this.uiService.setActiveCell(rowIndex, column);
             this.publish();
@@ -82,11 +81,9 @@ export class DetailConfigView {
         }
 
         if (this.propertyOptions[column]) {
-            this.uiService.setActiveCell(rowIndex, column); // Set active for visual feedback
-            const options = this.propertyOptions[column];
+            this.uiService.setActiveCell(rowIndex, column);
             this.quoteService.cycleItemProperty(rowIndex, column, options);
             this.publish();
-            // After cycling, we can deactivate the cell
             setTimeout(() => {
                 this.uiService.setActiveCell(null, null);
                 this.publish();
@@ -113,9 +110,9 @@ export class DetailConfigView {
 
         this.quoteService.updateItemProperty(rowIndex, column, newValue);
 
-        // The last editable row is totalRows - 2 (since the last item is always empty)
-        if (rowIndex < totalRows - 2) {
-            this.uiService.setActiveCell(rowIndex + 1, column);
+        const nextRowIndex = rowIndex + 1;
+        if (nextRowIndex < totalRows - 1) {
+            this.uiService.setActiveCell(nextRowIndex, column);
         } else {
             this.uiService.setActiveCell(null, null);
         }
@@ -137,5 +134,18 @@ export class DetailConfigView {
         if (firstEnabledInput) {
             setTimeout(() => firstEnabledInput.focus(), 0);
         }
+    }
+
+    _resyncFabricAndColorData() {
+        const enabledInputs = document.querySelectorAll('.panel-input:not([disabled])');
+        enabledInputs.forEach(input => {
+            const type = input.dataset.type;
+            const field = input.dataset.field;
+            const value = input.value;
+            if (value) { // Only re-apply if there is a value
+                this.quoteService.batchUpdatePropertyByType(type, field, value);
+            }
+        });
+        this.publish();
     }
 }

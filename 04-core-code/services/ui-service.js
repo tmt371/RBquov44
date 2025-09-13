@@ -13,7 +13,8 @@ export class UIService {
         this.state.isMultiDeleteMode = false;
         this.state.multiDeleteSelectedIndexes = new Set();
         
-        console.log("UIService Initialized.");
+        // --- [NEW DIAGNOSTIC LOG] ---
+        console.log(`[UIService] Initialized. Initial currentView is: %c'${this.state.currentView}'`, 'color: green; font-weight: bold;');
     }
 
     /**

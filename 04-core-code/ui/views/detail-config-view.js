@@ -16,26 +16,25 @@ export class DetailConfigView {
             lr: ['', 'L', 'R']
         };
 
-        // [REMOVED] All event subscriptions are removed from the view.
-        // AppController is now solely responsible for delegating events.
-        // this._initialize(); 
-
+        // All event subscriptions are handled by AppController.
         console.log("DetailConfigView Initialized (Passive View).");
     }
 
     handleFocusModeRequest({ column }) {
-        console.log(`Focus mode requested for: ${column}`);
+        console.log(`[DetailConfigView] Handling 'handleFocusModeRequest'... Column: ${column}`);
         this.uiService.setVisibleColumns(['sequence', column]);
         this.uiService.setActiveCell(0, column);
         this.publish();
     }
 
     handleBatchUpdateRequest({ column, value }) {
+        console.log(`[DetailConfigView] Handling 'handleBatchUpdateRequest'... Column: ${column}, Value: ${value}`);
         this.quoteService.batchUpdateProperty(column, value);
         this.publish();
     }
 
     handleTableCellInteraction({ rowIndex, column }) {
+        console.log(`[DetailConfigView] Handling 'handleTableCellInteraction'... Row: ${rowIndex}, Column: ${column}`);
         if (['location', 'fabric', 'color'].includes(column)) {
             this.uiService.setActiveCell(rowIndex, column);
             this.publish();
@@ -48,8 +47,10 @@ export class DetailConfigView {
             this.publish();
             return;
         }
-
-        console.log(`Unhandled table cell interaction in Detail view for column: ${column}`);
+        
+        // --- [MODIFIED DIAGNOSTIC LOG] ---
+        // This log should ONLY appear if we are in DetailConfig view and click on a non-interactive column like 'width'.
+        console.error(`[DetailConfigView] ERROR: Unhandled table cell interaction in Detail view for column: '${column}'. This should NOT happen in Quick Quote view.`);
     }
 
     _handleCellInputBlur(inputElement) {

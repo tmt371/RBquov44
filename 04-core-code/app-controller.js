@@ -1,7 +1,6 @@
 // File: 04-core-code/app-controller.js
 
 import { initialState } from './config/initial-state.js';
-// --- [NEW] Import the new DetailConfigView ---
 import { DetailConfigView } from './ui/views/detail-config-view.js';
 
 const AUTOSAVE_STORAGE_KEY = 'quoteAutoSaveData';
@@ -14,9 +13,8 @@ export class AppController {
         this.quoteService = quoteService;
         this.fileService = fileService;
         
-        // --- Store view instances ---
         this.quickQuoteView = quickQuoteView;
-        this.detailConfigView = detailConfigView; // [NEW] Store the new view instance
+        this.detailConfigView = detailConfigView;
 
         this.autoSaveTimerId = null;
         console.log("AppController (Refactored as View Manager) Initialized.");
@@ -24,16 +22,23 @@ export class AppController {
     }
 
     initialize() {
-        // --- Refactored Event Subscriptions to Delegate to Views ---
         const delegateToView = (handlerName, requiresInitialState = false) => (data) => {
             const currentView = this.uiService.getState().currentView;
-            
+
+            // --- [NEW DIAGNOSTIC LOG] ---
+            console.log(
+                `[AppController] Event received, attempting to delegate '${handlerName}'. currentView is: %c'${currentView}'`,
+                'color: blue; font-weight: bold;',
+                '| Data:', data || 'None'
+            );
+
             if (currentView === 'QUICK_QUOTE' && this.quickQuoteView && typeof this.quickQuoteView[handlerName] === 'function') {
                 const args = requiresInitialState ? [initialState.ui] : [data];
                 this.quickQuoteView[handlerName](...args);
             } else if (currentView === 'DETAIL_CONFIG' && this.detailConfigView && typeof this.detailConfigView[handlerName] === 'function') {
-                // [NEW] Delegate to DetailConfigView if it's the active view
                 this.detailConfigView[handlerName](data);
+            } else {
+                console.warn(`[AppController] Event '${handlerName}' was not handled by any active view.`);
             }
         };
 
@@ -52,7 +57,6 @@ export class AppController {
         this.eventAggregator.subscribe('userRequestedMultiDeleteMode', delegateToView('handleToggleMultiDeleteMode'));
         this.eventAggregator.subscribe('userChoseSaveThenLoad', delegateToView('handleSaveThenLoad'));
 
-        // --- Global App-Level Event Subscriptions ---
         this.eventAggregator.subscribe('userNavigatedToDetailView', () => this._handleNavigationToDetailView());
         this.eventAggregator.subscribe('userRequestedLoad', () => this._handleUserRequestedLoad());
         this.eventAggregator.subscribe('userChoseLoadDirectly', () => this._handleLoadDirectly());
@@ -63,7 +67,6 @@ export class AppController {
     
     _handleNavigationToDetailView() {
         const currentView = this.uiService.getState().currentView;
-        // Toggle between views
         if (currentView === 'QUICK_QUOTE') {
             this.uiService.setCurrentView('DETAIL_CONFIG');
         } else {
@@ -72,7 +75,6 @@ export class AppController {
         this._publishStateChange();
     }
 
-    // --- Global Handlers (Not View-Specific) ---
     _handleUserRequestedLoad() {
         if (this.quoteService.hasData()) {
             this.eventAggregator.publish('showLoadConfirmationDialog');
@@ -88,7 +90,7 @@ export class AppController {
     _handleFileLoad({ fileName, content }) {
         const result = this.fileService.parseFileContent(fileName, content);
         if (result.success) {
-            this.quoteService.quoteData = result.data;
+            this.quoteData = result.data;
             this.uiService.reset(initialState.ui);
             this.uiService.setSumOutdated(true);
             this._publishStateChange();

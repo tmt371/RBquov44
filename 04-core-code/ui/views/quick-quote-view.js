@@ -19,6 +19,7 @@ export class QuickQuoteView {
     // --- Event Handlers Migrated from AppController ---
 
     handleToggleMultiDeleteMode() {
+        console.log("[QuickQuoteView] Handling 'handleToggleMultiDeleteMode'...");
         const isEnteringMode = this.uiService.toggleMultiDeleteMode();
         if (!isEnteringMode) {
             this.focusService.focusFirstEmptyCell('width');
@@ -27,6 +28,7 @@ export class QuickQuoteView {
     }
 
     handleSequenceCellClick({ rowIndex }) {
+        console.log(`[QuickQuoteView] Handling 'handleSequenceCellClick'... Row: ${rowIndex}`);
         if (this.uiService.getState().isMultiDeleteMode) {
             const items = this.quoteService.getItems();
             const item = items[rowIndex];
@@ -44,6 +46,7 @@ export class QuickQuoteView {
     }
 
     handleDeleteRow() {
+        console.log("[QuickQuoteView] Handling 'handleDeleteRow'...");
         const { isMultiDeleteMode, multiDeleteSelectedIndexes, selectedRowIndex } = this.uiService.getState();
         if (isMultiDeleteMode) {
             if (multiDeleteSelectedIndexes.size === 0) {
@@ -65,6 +68,7 @@ export class QuickQuoteView {
     }
 
     handleInsertRow() {
+        console.log("[QuickQuoteView] Handling 'handleInsertRow'...");
         const { selectedRowIndex } = this.uiService.getState();
         if (selectedRowIndex === null) return;
         const items = this.quoteService.getItems();
@@ -87,6 +91,7 @@ export class QuickQuoteView {
     }
 
     handleNumericKeyPress(key) {
+        console.log(`[QuickQuoteView] Handling 'handleNumericKeyPress'... Key: ${key}`);
         if (!isNaN(parseInt(key))) {
             this.uiService.appendInputValue(key);
         } else if (key === 'DEL') {
@@ -101,6 +106,7 @@ export class QuickQuoteView {
     }
 
     _commitValue() {
+        console.log("[QuickQuoteView] Committing value...");
         const { inputValue, inputMode, activeCell } = this.uiService.getState();
         const value = inputValue === '' ? null : parseInt(inputValue, 10);
         const productStrategy = this.productFactory.getProductStrategy(this.currentProduct);
@@ -121,20 +127,8 @@ export class QuickQuoteView {
         this.publish();
     }
 
-    handleUserRequestedLoad() {
-        if (this.quoteService.hasData()) {
-            this.eventAggregator.publish('showLoadConfirmationDialog');
-        } else {
-            this.eventAggregator.publish('triggerFileLoad');
-        }
-    }
-
-    handleSaveThenLoad() {
-        this.handleSaveToFile();
-        this.eventAggregator.publish('triggerFileLoad');
-    }
-
     handleSaveToFile() {
+        console.log("[QuickQuoteView] Handling 'handleSaveToFile'...");
         const quoteData = this.quoteService.getQuoteData();
         const result = this.fileService.saveToJson(quoteData);
         const notificationType = result.success ? 'info' : 'error';
@@ -142,6 +136,7 @@ export class QuickQuoteView {
     }
 
     handleExportCSV() {
+        console.log("[QuickQuoteView] Handling 'handleExportCSV'...");
         const quoteData = this.quoteService.getQuoteData();
         const result = this.fileService.exportToCsv(quoteData);
         const notificationType = result.success ? 'info' : 'error';
@@ -149,6 +144,7 @@ export class QuickQuoteView {
     }
     
     handleReset(initialUIState) {
+        console.log("[QuickQuoteView] Handling 'handleReset'...");
         if (window.confirm("This will clear all data. Are you sure?")) {
             this.quoteService.reset();
             this.uiService.reset(initialUIState); 
@@ -158,6 +154,7 @@ export class QuickQuoteView {
     }
     
     handleClearRow() {
+        console.log("[QuickQuoteView] Handling 'handleClearRow'...");
         const { selectedRowIndex } = this.uiService.getState();
         if (selectedRowIndex === null) {
             this.eventAggregator.publish('showNotification', { message: 'Please select a row to clear.', type: 'error' });
@@ -171,11 +168,13 @@ export class QuickQuoteView {
     }
     
     handleMoveActiveCell(direction) {
+        console.log(`[QuickQuoteView] Handling 'handleMoveActiveCell'... Direction: ${direction}`);
         this.focusService.moveActiveCell(direction);
         this.publish();
     }
     
     handleTableCellClick({ rowIndex, column }) {
+        console.log(`[QuickQuoteView] Handling 'handleTableCellClick'... Row: ${rowIndex}, Column: ${column}`);
         const item = this.quoteService.getItems()[rowIndex];
         if (!item) return;
         this.uiService.clearRowSelection();
@@ -193,6 +192,7 @@ export class QuickQuoteView {
     }
     
     handleCycleType() {
+        console.log("[QuickQuoteView] Handling 'handleCycleType'...");
         const items = this.quoteService.getItems();
         const eligibleItems = items.filter(item => item.width && item.height);
         if (eligibleItems.length === 0) return;
@@ -217,6 +217,7 @@ export class QuickQuoteView {
     }
 
     handleCalculateAndSum() {
+        console.log("[QuickQuoteView] Handling 'handleCalculateAndSum'...");
         const currentQuoteData = this.quoteService.getQuoteData();
         const productStrategy = this.productFactory.getProductStrategy(this.currentProduct);
         const { updatedQuoteData, firstError } = this.calculationService.calculateAndSum(currentQuoteData, productStrategy);
@@ -231,5 +232,11 @@ export class QuickQuoteView {
             this.uiService.setSumOutdated(false);
         }
         this.publish();
+    }
+
+    handleSaveThenLoad() {
+        console.log("[QuickQuoteView] Handling 'handleSaveThenLoad'...");
+        this.handleSaveToFile();
+        this.eventAggregator.publish('triggerFileLoad');
     }
 }

@@ -305,6 +305,14 @@ html, body {
 }
 .tab-button:hover { background-color: #e5e7eb; }
 .tab-button.active { color: white; }
+/* [NEW] Style for disabled tab buttons */
+.tab-button:disabled {
+    background-color: #e9ecef !important;
+    color: #9ca3af !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 #k1-tab.active { background-color: var(--k1-bg-color); border-color: var(--tab-active-color); color: var(--tab-active-color); }
 #k2-tab.active { background-color: var(--k2-bg-color); border-color: var(--tab-active-color); color: var(--tab-active-color);}
 #k3-tab.active { background-color: var(--k3-bg-color); border-color: var(--tab-active-color); color: #2c3e50; }
@@ -358,7 +366,6 @@ html, body {
     background-color: var(--highlight-color);
     font-weight: bold;
 }
-/* [NEW] Override hover effect when button is active */
 .feature-button.active:hover {
     background-color: var(--highlight-color);
 }

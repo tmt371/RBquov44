@@ -24,6 +24,8 @@ export class UIManager {
         this.fabricColorButton = document.getElementById('btn-focus-fabric');
         this.locationInput = document.getElementById('location-input-box');
         
+        this.tabButtons = document.querySelectorAll('.tab-button'); // [NEW] Reference to all tab buttons
+
         // --- 實例化所有子元件 ---
         const tableElement = document.getElementById('results-table');
         this.tableComponent = new TableComponent(tableElement);
@@ -64,8 +66,27 @@ export class UIManager {
         this._updateButtonStates(state);
         this._updateLeftPanelState(state.ui.currentView);
         this._updatePanelButtonStates(state.ui);
+        this._updateTabStates(state.ui); // [NEW] Centralized tab state rendering
         
         this._scrollToActiveCell(state);
+    }
+
+    // [NEW] Method to manage tab disabled states
+    _updateTabStates(uiState) {
+        const { k1EditMode } = uiState;
+        const isInEditMode = k1EditMode !== null;
+        
+        const activeTab = document.querySelector('.tab-button.active');
+        
+        this.tabButtons.forEach(button => {
+            if (isInEditMode) {
+                // If in edit mode, disable all tabs that are NOT active
+                button.disabled = !button.classList.contains('active');
+            } else {
+                // If not in edit mode, enable all tabs
+                button.disabled = false;
+            }
+        });
     }
 
     _updatePanelButtonStates(uiState) {
@@ -84,7 +105,6 @@ export class UIManager {
             this.locationButton.classList.toggle('active', k1EditMode === 'location');
             this.fabricColorButton.classList.toggle('active', k1EditMode === 'fabric');
 
-            // Disable the other button when one is active
             this.locationButton.disabled = (k1EditMode === 'fabric');
             this.fabricColorButton.disabled = (k1EditMode === 'location');
             this.locationButton.classList.toggle('disabled-by-mode', k1EditMode === 'fabric');
@@ -115,23 +135,27 @@ export class UIManager {
             leftPanel.style.height = totalKeysHeight + 'px';
         };
         
-        const tabs = leftPanel.querySelectorAll('.tab-button');
-        const tabContents = leftPanel.querySelectorAll('.tab-content');
-        const panelBgColors = {
-            '#k1-content': 'var(--k1-bg-color)', '#k2-content': 'var(--k2-bg-color)',
-            '#k3-content': 'var(--k3-bg-color)', '#k4-content': 'var(--k4-bg-color)',
-            '#k5-content': 'var(--k5-bg-color)',
-        };
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
+        this.tabButtons.forEach(tab => {
+            tab.addEventListener('click', (event) => {
+                if (tab.disabled) {
+                    event.stopPropagation();
+                    return;
+                }
+                this.tabButtons.forEach(t => t.classList.remove('active'));
+                const tabContents = this.leftPanel.querySelectorAll('.tab-content');
                 tabContents.forEach(c => c.classList.remove('active'));
+                
                 tab.classList.add('active');
                 const targetContent = document.querySelector(tab.dataset.tabTarget);
+
                 if(targetContent) {
                     targetContent.classList.add('active');
-                    leftPanel.style.backgroundColor = panelBgColors[tab.dataset.tabTarget];
+                    const panelBgColors = {
+                        '#k1-content': 'var(--k1-bg-color)', '#k2-content': 'var(--k2-bg-color)',
+                        '#k3-content': 'var(--k3-bg-color)', '#k4-content': 'var(--k4-bg-color)',
+                        '#k5-content': 'var(--k5-bg-color)',
+                    };
+                    this.leftPanel.style.backgroundColor = panelBgColors[tab.dataset.tabTarget];
                 }
             });
         });

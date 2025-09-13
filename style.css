@@ -1,4 +1,4 @@
-/* /style.css */
+/* File: style.css */
 
 :root {
     --panel-border-color: #d1d5db;
@@ -47,13 +47,7 @@ html, body {
     z-index: 10;
 }
 
-.results-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-    word-break: break-all;
-}
-
+.results-table td,
 .results-table th {
     border: 1px solid #ddd;
     padding: 8px;
@@ -72,6 +66,11 @@ html, body {
 .results-table .col-h { width: auto; }
 .results-table .col-type { width: auto; }
 .results-table .col-price { width: 90px; }
+/* [NEW] Add classes for new dynamic columns */
+.results-table .col-location { width: 120px; }
+.results-table .col-fabric { width: 120px; }
+.results-table .col-color { width: 120px; }
+
 
 .results-table th.input-display-header {
     padding: 0;
@@ -244,7 +243,7 @@ html, body {
 .dialog-button.secondary { background-color: #6c757d; color: white; }
 .dialog-button.secondary:hover { background-color: #5a6268; }
 
-/* --- [新增] 左盤樣式 --- */
+/* --- Left Panel Styles --- */
 :root {
     --tab-active-color: #1a237e;
     --k1-bg-color: hsl(220, 15%, 96%);
@@ -305,3 +304,49 @@ html, body {
 #k1-content { background-color: var(--k1-bg-color); } #k2-content { background-color: var(--k2-bg-color); }
 #k3-content { background-color: var(--k3-bg-color); } #k4-content { background-color: var(--k4-bg-color); }
 #k5-content { background-color: var(--k5-bg-color); }
+
+/* --- [NEW] Left Panel Feature Styles --- */
+.feature-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.feature-group {
+    /* No specific styles needed for the group container itself yet */
+}
+
+.feature-label {
+    display: block;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #4b5563;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.feature-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.feature-button {
+    padding: 8px 12px;
+    font-size: 0.9em;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #b0b8c4;
+    background-color: #fff;
+    font-weight: 500;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.feature-button:hover {
+    background-color: #f0f2f5;
+}
+
+.feature-button:active {
+    background-color: #e5e7eb;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}

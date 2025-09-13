@@ -12,18 +12,34 @@ export class InputHandler {
         this._setupPanelToggles();
         this._setupFileLoader();
         this._setupPhysicalKeyboard();
-        this._setupNavigation(); // [NEW] Add navigation setup
+        this._setupNavigation();
+        this._setupLeftPanelInputs(); // [NEW] Add left panel input setup
     }
     
-    // --- [NEW] Setup navigation-related inputs ---
     _setupNavigation() {
         const leftPanelToggle = document.getElementById('left-panel-toggle');
         if (leftPanelToggle) {
             leftPanelToggle.addEventListener('click', () => {
-                // Publish a semantic event indicating user's intent to navigate
                 this.eventAggregator.publish('userNavigatedToDetailView');
             });
         }
+    }
+
+    // --- [NEW] Setup event listeners for buttons inside the left panel ---
+    _setupLeftPanelInputs() {
+        const setupFocusButton = (buttonId, column) => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.addEventListener('click', () => {
+                    this.eventAggregator.publish('userRequestedFocusMode', { column });
+                });
+            }
+        };
+
+        // K1 Tab Buttons
+        setupFocusButton('btn-focus-location', 'location');
+        setupFocusButton('btn-focus-fabric', 'fabric');
+        setupFocusButton('btn-focus-color', 'color');
     }
 
     _setupPhysicalKeyboard() {
@@ -112,8 +128,6 @@ export class InputHandler {
         setupButton('key-save', 'userRequestedSave');
         setupButton('key-export', 'userRequestedExportCSV');
         setupButton('key-reset', 'userRequestedReset');
-        
-        // [新增] 為 M-Del 按鈕綁定新的事件
         setupButton('key-f5', 'userRequestedMultiDeleteMode');
 
         const loadButton = document.getElementById('key-load');

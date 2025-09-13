@@ -23,24 +23,14 @@ export class QuoteService {
         return this.quoteData;
     }
 
-    /**
-     * [新增] 提供一個通用的、公開的方法來取得當前產品的項目列表
-     * @returns {Array} 當前產品的項目列表
-     */
     getItems() {
         return this.quoteData[this.itemListName];
     }
     
-    // --- 內部輔助方法，用於動態取得當前產品的項目列表 ---
     _getItems() {
         return this.quoteData[this.itemListName];
     }
 
-    /**
-     * Inserts a new row after the specified index.
-     * @param {number} selectedIndex The index to insert after.
-     * @returns {number} The index of the newly inserted row.
-     */
     insertRow(selectedIndex) {
         const items = this._getItems();
         const newItem = this.productStrategy.getInitialItemData();
@@ -49,10 +39,6 @@ export class QuoteService {
         return newRowIndex;
     }
 
-    /**
-     * Deletes a row at the specified index.
-     * @param {number} selectedIndex The index of the row to delete.
-     */
     deleteRow(selectedIndex) {
         const items = this._getItems();
         const isLastRow = selectedIndex === items.length - 1;
@@ -72,10 +58,6 @@ export class QuoteService {
         items.splice(selectedIndex, 1);
     }
 
-    /**
-     * Clears all data from a row at the specified index.
-     * @param {number} selectedIndex The index of the row to clear.
-     */
     clearRow(selectedIndex) {
         const itemToClear = this._getItems()[selectedIndex];
         if (itemToClear) {
@@ -84,7 +66,7 @@ export class QuoteService {
             itemToClear.height = null;
             itemToClear.fabricType = null;
             itemToClear.linePrice = null;
-            // --- [NEW] Phase 2 Fields ---
+            // --- Phase 2 Fields ---
             itemToClear.location = '';
             itemToClear.fabric = '';
             itemToClear.color = '';
@@ -98,13 +80,6 @@ export class QuoteService {
         }
     }
 
-    /**
-     * Updates a specific property of an item at a given index.
-     * @param {number} rowIndex The index of the item.
-     * @param {string} column The property to update ('width' or 'height').
-     * @param {number|null} value The new value.
-     * @returns {boolean} True if the value was changed, false otherwise.
-     */
     updateItemValue(rowIndex, column, value) {
         const targetItem = this._getItems()[rowIndex];
         if (!targetItem) return false;
@@ -119,11 +94,23 @@ export class QuoteService {
         return false;
     }
     
+    // --- [NEW] Generic method for updating any property (especially strings) ---
     /**
-     * Cycles the fabric type for an item at a given index.
+     * Updates a specific property of an item. Best for non-numeric or simple value assignments.
      * @param {number} rowIndex The index of the item.
-     * @returns {boolean} True if the type was changed, false otherwise.
+     * @param {string} property The property key to update.
+     * @param {*} value The new value.
+     * @returns {boolean} True if the value was changed.
      */
+    updateItemProperty(rowIndex, property, value) {
+        const item = this._getItems()[rowIndex];
+        if (item && item[property] !== value) {
+            item[property] = value;
+            return true;
+        }
+        return false;
+    }
+    
     cycleItemType(rowIndex) {
         const item = this._getItems()[rowIndex];
         if (!item || (!item.width && !item.height)) return false;
@@ -141,9 +128,6 @@ export class QuoteService {
         return false;
     }
 
-    /**
-     * Resets the entire quote data to its initial state.
-     */
     reset() {
         const initialItem = this.productStrategy.getInitialItemData();
         this.quoteData = {
@@ -152,20 +136,12 @@ export class QuoteService {
         };
     }
 
-    /**
-     * Checks if the current quote has any meaningful data.
-     * @returns {boolean} True if there is data, false otherwise.
-     */
     hasData() {
         const items = this._getItems();
         if (!items) return false;
         return items.length > 1 || (items.length === 1 && (items[0].width || items[0].height));
     }
 
-    /**
-     * Deletes multiple rows based on an array of indexes.
-     * @param {Set<number>} indexesToDelete A Set of row indexes to delete.
-     */
     deleteMultipleRows(indexesToDelete) {
         const sortedIndexes = [...indexesToDelete].sort((a, b) => b - a);
 
@@ -176,9 +152,6 @@ export class QuoteService {
         this.consolidateEmptyRows();
     }
 
-    /**
-     * Ensures there is exactly one empty row at the end of the table.
-     */
     consolidateEmptyRows() {
         const items = this._getItems();
         

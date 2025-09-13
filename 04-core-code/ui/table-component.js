@@ -13,9 +13,12 @@ const COLUMN_CONFIG = {
         header: '<input type="text" class="input-display-cell" id="input-display-cell" readonly>', 
         className: 'input-display-header col-price', 
         dataColumn: 'Price',
-        cellType: 'th' // The header itself is the content for this column
-    }
-    // Future columns like 'location', 'fabric', etc., will be added here.
+        cellType: 'th'
+    },
+    // --- [NEW] Add configuration for K1 columns ---
+    location: { header: 'Location', className: 'col-location', dataColumn: 'location', cellType: 'td' },
+    fabric: { header: 'Fabric', className: 'col-fabric', dataColumn: 'fabric', cellType: 'td' },
+    color: { header: 'Color', className: 'col-color', dataColumn: 'color', cellType: 'td' }
 };
 
 
@@ -34,7 +37,7 @@ export class TableComponent {
      */
     render(state) {
         const { rollerBlindItems } = state.quoteData;
-        const { activeCell, selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes, visibleColumns } = state.ui;
+        const { visibleColumns } = state.ui;
 
         // Clear previous content
         this.tableElement.innerHTML = '';
@@ -76,7 +79,6 @@ export class TableComponent {
                 cell.className = config.className;
                 cell.dataset.column = config.dataColumn;
                 
-                // Apply dynamic classes and content
                 this._renderCellContent(cell, key, item, index, state);
             });
         });
@@ -88,6 +90,7 @@ export class TableComponent {
     _renderCellContent(cell, key, item, index, state) {
         const { activeCell, selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes } = state.ui;
 
+        // --- Standard cell content and styling ---
         switch (key) {
             case 'sequence':
                 cell.textContent = index + 1;
@@ -116,6 +119,19 @@ export class TableComponent {
             case 'Price':
                 cell.textContent = item.linePrice ? item.linePrice.toFixed(2) : '';
                 cell.classList.add('price-cell');
+                break;
+            // --- [NEW] Add rendering for K1 columns ---
+            case 'location':
+            case 'fabric':
+            case 'color':
+                cell.textContent = item[key] || '';
+                if (index === activeCell.rowIndex && activeCell.column === key) {
+                    cell.classList.add('active-input-cell');
+                    // Transform cell into an input field for editing
+                    cell.innerHTML = `<input type="text" value="${item[key] || ''}" class="editable-cell-input" data-row-index="${index}" data-column="${key}" />`;
+                    // Auto-focus the input
+                    setTimeout(() => cell.querySelector('input').focus(), 0);
+                }
                 break;
         }
     }

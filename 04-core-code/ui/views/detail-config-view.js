@@ -10,35 +10,60 @@ export class DetailConfigView {
         this.eventAggregator = eventAggregator;
         this.publish = publishStateChangeCallback;
 
-        console.log("DetailConfigView Initialized (Skeleton).");
+        this._initialize();
+        console.log("DetailConfigView Initialized.");
     }
 
-    // --- Placeholder for future event handlers ---
-
-    /**
-     * Handles clicks on the left panel's tab buttons (K1-K5).
-     * @param {string} tabId The ID of the clicked tab.
-     */
-    handleTabClick(tabId) {
-        console.log(`Tab ${tabId} clicked. Logic to be implemented.`);
-        // Future logic:
-        // 1. Update visibleColumns in UIService to trigger focus mode.
-        // 2. Publish state change.
+    _initialize() {
+        this.eventAggregator.subscribe('userRequestedFocusMode', (data) => this.handleFocusModeRequest(data));
+        this.eventAggregator.subscribe('tableCellClicked', (data) => this.handleTableCellInteraction(data));
+        
+        // Listen for blur events bubbling up from the table
+        document.getElementById('results-table').addEventListener('blur', (event) => {
+            if (event.target.matches('.editable-cell-input')) {
+                this._handleCellInputBlur(event.target);
+            }
+        }, true); // Use capturing phase to ensure we catch the event
     }
 
     /**
-     * Handles clicks on a specific feature button within a tab (e.g., #Location).
-     * @param {string} featureId The ID or identifier of the feature.
+     * Handles the request to enter "Focus Mode" for a specific column.
+     * @param {object} data - The event data, containing the target column.
      */
-    handleFeatureClick(featureId) {
-        console.log(`Feature ${featureId} clicked. Logic to be implemented.`);
+    handleFocusModeRequest({ column }) {
+        console.log(`Focus mode requested for: ${column}`);
+        // Set the visible columns to only be the sequence number and the target column
+        this.uiService.setVisibleColumns(['sequence', column]);
+        // Set the active cell to the first row of the target column to begin editing
+        this.uiService.setActiveCell(0, column);
+        this.publish();
     }
 
     /**
      * Handles data input or interaction within the main table when in detail config view.
-     * @param {object} eventData Data about the cell interaction.
+     * @param {object} eventData Data about the cell interaction { rowIndex, column }.
      */
     handleTableCellInteraction(eventData) {
-        console.log('Table cell interaction in Detail view:', eventData);
+        // When a cell is clicked, set it as the active cell to trigger the re-render with an input field.
+        this.uiService.setActiveCell(eventData.rowIndex, eventData.column);
+        this.publish();
+    }
+
+    /**
+     * Handles the blur event from an editable input cell in the table.
+     * @param {HTMLInputElement} inputElement The input element that lost focus.
+     */
+    _handleCellInputBlur(inputElement) {
+        const rowIndex = parseInt(inputElement.dataset.rowIndex, 10);
+        const column = inputElement.dataset.column;
+        const newValue = inputElement.value;
+
+        // Update the data in the core model
+        this.quoteService.updateItemProperty(rowIndex, column, newValue);
+        
+        // Important: After editing, reset the active cell to prevent the input from reappearing
+        // and revert to the default view of the focused column.
+        this.uiService.setActiveCell(null, null);
+        this.publish();
     }
 }

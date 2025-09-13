@@ -16,11 +16,44 @@ export class DetailConfigView {
             lr: ['', 'L', 'R']
         };
 
-        // [REMOVED] All direct DOM event listeners are removed from the view.
+        this.locationButton = document.getElementById('btn-focus-location');
+        this.locationInput = document.getElementById('location-input-box');
+
+        this._initialize();
         console.log("DetailConfigView Initialized (Corrected Passive View).");
     }
 
+    _initialize() {
+        // This is a special case listener for the view to react to its own state changes
+        this.eventAggregator.subscribe('stateChanged', (state) => this._onStateChanged(state));
+    }
+
+    _onStateChanged(state) {
+        if (state.ui.currentView !== 'DETAIL_CONFIG') return;
+
+        const { isLocationEditMode, locationInputValue } = state.ui;
+
+        // Sync Location Input Box
+        if (this.locationInput) {
+            this.locationInput.disabled = !isLocationEditMode;
+            this.locationInput.classList.toggle('active', isLocationEditMode);
+            if (this.locationInput.value !== locationInputValue) {
+                this.locationInput.value = locationInputValue;
+            }
+        }
+        
+        // Sync Location Button
+        if (this.locationButton) {
+            this.locationButton.classList.toggle('active', isLocationEditMode);
+        }
+    }
+
     handleFocusModeRequest({ column }) {
+        if (column === 'location') {
+            this._toggleLocationEditMode();
+            return;
+        }
+
         if (column === 'fabric') {
             this._resyncFabricAndColorData();
             this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
@@ -28,10 +61,55 @@ export class DetailConfigView {
             this.uiService.setActiveCell(null, null);
         } else {
             this.uiService.setVisibleColumns(['sequence', column]);
-            this.uiService.setActiveCell(0, column);
         }
         this.publish();
     }
+    
+    _toggleLocationEditMode() {
+        const isCurrentlyEditing = this.uiService.getState().isLocationEditMode;
+        const newEditState = !isCurrentlyEditing;
+
+        this.uiService.setIsLocationEditMode(newEditState);
+
+        if (newEditState) {
+            // Entering edit mode
+            this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'location']);
+            this.uiService.setTargetCell({ rowIndex: 0, column: 'location' });
+            setTimeout(() => {
+                this.locationInput.focus();
+                this.locationInput.select();
+            }, 0);
+        } else {
+            // Exiting edit mode
+            this.uiService.setTargetCell(null);
+            this.uiService.setLocationInputValue('');
+        }
+        this.publish();
+    }
+
+    handleLocationInputEnter({ value }) {
+        const { targetCell } = this.uiService.getState();
+        if (!targetCell) return;
+
+        // 1. Update the data
+        this.quoteService.updateItemProperty(targetCell.rowIndex, targetCell.column, value);
+
+        // 2. Move to the next target cell
+        const nextRowIndex = targetCell.rowIndex + 1;
+        const totalRows = this.quoteService.getItems().length;
+
+        if (nextRowIndex < totalRows - 1) { // -1 because the last row is always empty
+            this.uiService.setTargetCell({ rowIndex: nextRowIndex, column: 'location' });
+            const nextItem = this.quoteService.getItems()[nextRowIndex];
+            this.uiService.setLocationInputValue(nextItem.location || '');
+            this.publish();
+            setTimeout(() => this.locationInput.select(), 0);
+        } else {
+            // End of the list, exit edit mode
+            this._toggleLocationEditMode();
+        }
+    }
+
 
     handleBatchUpdateRequest({ column, value }) {
         this.quoteService.batchUpdateProperty(column, value);
@@ -56,13 +134,21 @@ export class DetailConfigView {
         }
     }
 
-    handleTableCellInteraction({ rowIndex, column }) {
-        if (['location', 'fabric', 'color'].includes(column)) {
-            this.uiService.setActiveCell(rowIndex, column);
+    handleSequenceCellClick({ rowIndex }) {
+        const { isLocationEditMode } = this.uiService.getState();
+        if (isLocationEditMode) {
+            this.uiService.setTargetCell({ rowIndex, column: 'location' });
+            const item = this.quoteService.getItems()[rowIndex];
+            this.uiService.setLocationInputValue(item.location || '');
             this.publish();
-            return;
+            setTimeout(() => {
+                this.locationInput.focus();
+                this.locationInput.select();
+            }, 0);
         }
+    }
 
+    handleTableCellInteraction({ rowIndex, column }) {
         if (this.propertyOptions[column]) {
             this.uiService.setActiveCell(rowIndex, column);
             const options = this.propertyOptions[column];
@@ -74,28 +160,6 @@ export class DetailConfigView {
             }, 100);
             return;
         }
-    }
-
-    // [MODIFIED] Method name changed to be public, now called by AppController
-    _handleCellInputBlur({ rowIndex, column, value }) {
-        this.quoteService.updateItemProperty(rowIndex, column, value);
-        this.uiService.setActiveCell(null, null);
-        this.publish();
-    }
-
-    // [MODIFIED] Method name changed to be public, now called by AppController
-    _handleCellInputEnter({ rowIndex, column, value }) {
-        const totalRows = this.quoteService.getItems().length;
-
-        this.quoteService.updateItemProperty(rowIndex, column, value);
-
-        const nextRowIndex = rowIndex + 1;
-        if (nextRowIndex < totalRows - 1) {
-            this.uiService.setActiveCell(nextRowIndex, column);
-        } else {
-            this.uiService.setActiveCell(null, null);
-        }
-        this.publish();
     }
 
     _updatePanelInputsState() {

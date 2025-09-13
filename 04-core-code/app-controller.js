@@ -53,8 +53,9 @@ export class AppController {
         this.eventAggregator.subscribe('userRequestedFocusMode', delegateToView('handleFocusModeRequest'));
         this.eventAggregator.subscribe('userRequestedBatchUpdate', delegateToView('handleBatchUpdateRequest'));
         this.eventAggregator.subscribe('panelInputEnterPressed', delegateToView('handlePanelInputEnter'));
-        this.eventAggregator.subscribe('editableCellBlurred', delegateToView('_handleCellInputBlur')); // [NEW]
-        this.eventAggregator.subscribe('editableCellEnterPressed', delegateToView('_handleCellInputEnter')); // [NEW]
+        this.eventAggregator.subscribe('editableCellBlurred', delegateToView('_handleCellInputBlur'));
+        this.eventAggregator.subscribe('editableCellEnterPressed', delegateToView('_handleCellInputEnter'));
+        this.eventAggregator.subscribe('locationInputEnterPressed', delegateToView('handleLocationInputEnter')); // [NEW]
 
 
         // Global App-Level Events

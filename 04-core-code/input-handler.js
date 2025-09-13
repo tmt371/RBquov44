@@ -66,40 +66,41 @@ export class InputHandler {
                 this.eventAggregator.publish('userNavigatedToQuickQuoteView');
             });
         }
-        
-        // [REMOVED] Keydown listener moved to _setupPhysicalKeyboard
+
+        const batchTable = document.getElementById('fabric-batch-table');
+        if (batchTable) {
+            batchTable.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && event.target.matches('.panel-input')) {
+                    event.preventDefault();
+                    const input = event.target;
+                    this.eventAggregator.publish('panelInputEnterPressed', {
+                        type: input.dataset.type,
+                        field: input.dataset.field
+                    });
+                }
+            });
+        }
+
+        // --- [NEW] Event listener for the dedicated Location input box ---
+        const locationInput = document.getElementById('location-input-box');
+        if (locationInput) {
+            locationInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    this.eventAggregator.publish('locationInputEnterPressed', {
+                        value: event.target.value
+                    });
+                }
+            });
+        }
     }
 
     _setupPhysicalKeyboard() {
         window.addEventListener('keydown', (event) => {
-            const activeElement = document.activeElement;
-
-            // --- 1. Handle keydown inside the main table's editable inputs ---
-            if (activeElement && activeElement.matches('.editable-cell-input')) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    this.eventAggregator.publish('editableCellEnterPressed', {
-                        rowIndex: parseInt(activeElement.dataset.rowIndex, 10),
-                        column: activeElement.dataset.column,
-                        value: activeElement.value
-                    });
-                }
-                return; // Allow other keys (like text) to be handled by the browser
-            }
-
-            // --- 2. Handle keydown inside the left panel's inputs ---
-            if (activeElement && activeElement.matches('.panel-input')) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    this.eventAggregator.publish('panelInputEnterPressed', {
-                        type: activeElement.dataset.type,
-                        field: activeElement.dataset.field
-                    });
-                }
-                return; // Allow other keys to be handled by the browser
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                return;
             }
             
-            // --- 3. Handle global keyboard shortcuts if no input is focused ---
             let keyToPublish = null;
             let eventToPublish = 'numericKeyPressed';
             const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
@@ -204,7 +205,6 @@ export class InputHandler {
         };
 
         addButtonListener('key-7', 'numericKeyPressed', { key: '7' });
-        // ... (rest of the numeric keyboard buttons are unchanged)
         addButtonListener('key-8', 'numericKeyPressed', { key: '8' });
         addButtonListener('key-9', 'numericKeyPressed', { key: '9' });
         addButtonListener('key-4', 'numericKeyPressed', { key: '4' });
@@ -216,9 +216,12 @@ export class InputHandler {
         addButtonListener('key-0', 'numericKeyPressed', { key: '0' });
         addButtonListener('key-del', 'numericKeyPressed', { key: 'DEL' });
         addButtonListener('key-enter', 'numericKeyPressed', { key: 'ENT' });
+
         addButtonListener('key-w', 'numericKeyPressed', { key: 'W' });
         addButtonListener('key-h', 'numericKeyPressed', { key: 'H' });
+        
         addButtonListener('key-type', 'userRequestedCycleType');
+
         addButtonListener('key-clear', 'userRequestedClearRow');
         addButtonListener('key-price', 'userRequestedCalculateAndSum');
     }
@@ -226,7 +229,6 @@ export class InputHandler {
     _setupTableInteraction() {
         const table = document.getElementById('results-table');
         if (table) {
-            // Click Listener remains the same
             table.addEventListener('click', (event) => {
                 const target = event.target;
                 if (target.tagName === 'TD') {
@@ -243,7 +245,6 @@ export class InputHandler {
                 }
             });
 
-            // Blur listener remains the same
             table.addEventListener('blur', (event) => {
                 if (event.target.matches('.editable-cell-input')) {
                     const input = event.target;
@@ -255,7 +256,17 @@ export class InputHandler {
                 }
             }, true);
 
-            // [REMOVED] Keydown listener is now consolidated in _setupPhysicalKeyboard
+            table.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && event.target.matches('.editable-cell-input')) {
+                    event.preventDefault();
+                    const input = event.target;
+                    this.eventAggregator.publish('editableCellEnterPressed', {
+                        rowIndex: parseInt(input.dataset.rowIndex, 10),
+                        column: input.dataset.column,
+                        value: input.value
+                    });
+                }
+            }, true);
         }
     }
 }

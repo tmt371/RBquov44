@@ -15,15 +15,12 @@ const COLUMN_CONFIG = {
         dataColumn: 'Price',
         cellType: 'th'
     },
-    // K1 columns
     location: { header: 'Location', className: 'col-location', dataColumn: 'location', cellType: 'td' },
     fabric: { header: 'F-Name', className: 'col-fabric', dataColumn: 'fabric', cellType: 'td' },
     color: { header: 'F-Color', className: 'col-color', dataColumn: 'color', cellType: 'td' },
-    // K2 columns
     over: { header: 'Over', className: 'col-over', dataColumn: 'over', cellType: 'td' },
     oi: { header: 'O/I', className: 'col-oi', dataColumn: 'oi', cellType: 'td' },
     lr: { header: 'L/R', className: 'col-lr', dataColumn: 'lr', cellType: 'td' },
-    // --- [NEW] A non-interactive display version of the fabric type for specific views ---
     fabricTypeDisplay: { header: 'Type', className: 'col-type', dataColumn: 'fabricType', cellType: 'td' },
 };
 
@@ -89,7 +86,12 @@ export class TableComponent {
     }
 
     _renderCellContent(cell, key, item, index, state) {
-        const { activeCell, selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes } = state.ui;
+        const { activeCell, selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes, targetCell } = state.ui;
+
+        // --- [NEW] Add target-cell class if the cell is the current target ---
+        if (targetCell && index === targetCell.rowIndex && key === targetCell.column) {
+            cell.classList.add('target-cell');
+        }
 
         switch (key) {
             case 'sequence':
@@ -138,7 +140,6 @@ export class TableComponent {
                     cell.classList.add('active-input-cell');
                 }
                 break;
-            // --- [NEW] ---
             case 'fabricTypeDisplay':
                 cell.textContent = item.fabricType || '';
                 if (item.fabricType === 'BO1') cell.classList.add('type-bo1');

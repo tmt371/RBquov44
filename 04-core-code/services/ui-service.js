@@ -12,9 +12,9 @@ export class UIService {
         // Initialize states not present in the initial config
         this.state.isMultiDeleteMode = false;
         this.state.multiDeleteSelectedIndexes = new Set();
-        this.state.isLocationEditMode = false;
         this.state.locationInputValue = '';
         this.state.targetCell = null;
+        this.state.k1EditMode = null; // [NEW] Replaces isLocationEditMode
         
         console.log("UIService Initialized.");
     }
@@ -27,9 +27,9 @@ export class UIService {
         this.state = JSON.parse(JSON.stringify(initialUIState));
         this.state.isMultiDeleteMode = false;
         this.state.multiDeleteSelectedIndexes = new Set();
-        this.state.isLocationEditMode = false;
         this.state.locationInputValue = '';
         this.state.targetCell = null;
+        this.state.k1EditMode = null; // [MODIFIED] Reset the new state property
     }
 
     setActiveCell(rowIndex, column) {
@@ -94,17 +94,21 @@ export class UIService {
     setVisibleColumns(columns) {
         this.state.visibleColumns = columns;
     }
-
-    // --- [NEW] Methods for Location Edit Mode ---
-    setIsLocationEditMode(isActive) {
-        this.state.isLocationEditMode = isActive;
-    }
-
+    
     setLocationInputValue(value) {
         this.state.locationInputValue = value;
     }
 
     setTargetCell(cell) { // cell should be { rowIndex, column } or null
         this.state.targetCell = cell;
+    }
+    
+    // --- [NEW] Method for the new K1 edit mode state ---
+    /**
+     * Sets the active editing mode for the K1 panel.
+     * @param {string|null} mode - 'location', 'fabric', or null.
+     */
+    setK1EditMode(mode) {
+        this.state.k1EditMode = mode;
     }
 }

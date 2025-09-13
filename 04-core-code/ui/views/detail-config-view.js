@@ -16,36 +16,40 @@ export class DetailConfigView {
             lr: ['', 'L', 'R']
         };
 
-        // [REMOVED] All direct DOM element references and listeners are removed from the view.
-        // The view is now only responsible for logic, not rendering.
+        // All direct DOM element references are removed. UIManager is the single source of truth for rendering.
         console.log("DetailConfigView Initialized (Pure Logic View).");
     }
 
     handleFocusModeRequest({ column }) {
+        const currentMode = this.uiService.getState().k1EditMode;
+
         if (column === 'location') {
-            this._toggleLocationEditMode();
+            const newMode = currentMode === 'location' ? null : 'location';
+            this._toggleLocationEditMode(newMode);
             return;
         }
 
         if (column === 'fabric') {
-            this._resyncFabricAndColorData();
-            this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
-            this._updatePanelInputsState(); 
-            this.uiService.setActiveCell(null, null);
-        } else {
-            this.uiService.setVisibleColumns(['sequence', column]);
-        }
+            const newMode = currentMode === 'fabric' ? null : 'fabric';
+            this.uiService.setK1EditMode(newMode);
+
+            if (newMode) {
+                this._resyncFabricAndColorData();
+                this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
+                this._updatePanelInputsState(); 
+                this.uiService.setActiveCell(null, null);
+            } else {
+                // When exiting fabric mode, revert to a default view or clear focus
+                this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'location']);
+            }
+        } 
         this.publish();
     }
     
-    _toggleLocationEditMode() {
-        const isCurrentlyEditing = this.uiService.getState().isLocationEditMode;
-        const newEditState = !isCurrentlyEditing;
-        const locationInput = document.getElementById('location-input-box');
+    _toggleLocationEditMode(newMode) {
+        this.uiService.setK1EditMode(newMode);
 
-        this.uiService.setIsLocationEditMode(newEditState);
-
-        if (newEditState) {
+        if (newMode) {
             this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'location']);
             const targetRow = 0;
             this.uiService.setTargetCell({ rowIndex: targetRow, column: 'location' });
@@ -53,6 +57,7 @@ export class DetailConfigView {
             const currentItem = this.quoteService.getItems()[targetRow];
             this.uiService.setLocationInputValue(currentItem.location || '');
             
+            const locationInput = document.getElementById('location-input-box');
             setTimeout(() => {
                 locationInput?.focus();
                 locationInput?.select();
@@ -81,7 +86,7 @@ export class DetailConfigView {
             this.publish();
             setTimeout(() => locationInput?.select(), 0);
         } else {
-            this._toggleLocationEditMode();
+            this._toggleLocationEditMode(null); // Auto-exit after the last item
         }
     }
 
@@ -110,8 +115,8 @@ export class DetailConfigView {
     }
 
     handleSequenceCellClick({ rowIndex }) {
-        const { isLocationEditMode } = this.uiService.getState();
-        if (isLocationEditMode) {
+        const { k1EditMode } = this.uiService.getState();
+        if (k1EditMode === 'location') {
             this.uiService.setTargetCell({ rowIndex, column: 'location' });
             const item = this.quoteService.getItems()[rowIndex];
             this.uiService.setLocationInputValue(item.location || '');

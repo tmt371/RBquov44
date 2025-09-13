@@ -15,7 +15,6 @@ import { FocusService } from './services/focus-service.js';
 import { FileService } from './services/file-service.js';
 import { UIService } from './services/ui-service.js';
 
-// --- Import the view modules ---
 import { QuickQuoteView } from './ui/views/quick-quote-view.js';
 import { DetailConfigView } from './ui/views/detail-config-view.js';
 
@@ -45,21 +44,18 @@ class App {
         
         this.eventAggregator = new EventAggregator();
         this.configManager = new ConfigManager(this.eventAggregator);
-        this.inputHandler = new InputHandler(this.eventAggregator);
         
         const productFactory = new ProductFactory();
 
-        // 1. Instantiate all independent Services
+        // Services are instantiated here...
         const quoteService = new QuoteService({
             initialState: startingState,
             productFactory: productFactory
         });
-        
         const calculationService = new CalculationService({
             productFactory: productFactory,
             configManager: this.configManager
         });
-
         const fileService = new FileService();
         const uiService = new UIService(startingState.ui);
         const focusService = new FocusService({
@@ -69,7 +65,6 @@ class App {
 
         const publishStateChangeCallback = () => this.eventAggregator.publish('stateChanged', this.appController._getFullState());
 
-        // 2. Instantiate the View modules
         const quickQuoteView = new QuickQuoteView({
             quoteService,
             calculationService,
@@ -88,26 +83,45 @@ class App {
             publishStateChangeCallback
         });
         
-        // 3. Instantiate AppController, injecting services and views
         this.appController = new AppController({
             eventAggregator: this.eventAggregator,
             uiService,
             quoteService,
             fileService,
             quickQuoteView,
-            detailConfigView // Inject the new view instance
+            detailConfigView
         });
         
-        // 4. Instantiate UIManager
+        // UIManager and InputHandler are instantiated after HTML is loaded
+    }
+
+    // --- [NEW] Method to load HTML partials ---
+    async _loadPartials() {
+        try {
+            const response = await fetch('./04-core-code/ui/partials/left-panel.html');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const html = await response.text();
+            document.body.insertAdjacentHTML('beforeend', html);
+        } catch (error) {
+            console.error("Failed to load HTML partial:", error);
+            this.eventAggregator.publish('showNotification', { message: 'Error: Could not load UI components!', type: 'error'});
+        }
+    }
+
+    async run() {
+        console.log("Application starting...");
+        
+        await this._loadPartials(); // Load HTML first
+
+        // Now that HTML is loaded, we can instantiate the components that depend on it.
+        this.inputHandler = new InputHandler(this.eventAggregator);
         this.uiManager = new UIManager(
             document.getElementById('app'), 
             this.eventAggregator
         );
-    }
 
-    async run() {
-        console.log("Application starting with UI Service architecture...");
-        
         await this.configManager.initialize();
 
         this.eventAggregator.subscribe('stateChanged', (state) => {

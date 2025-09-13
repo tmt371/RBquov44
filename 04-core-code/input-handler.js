@@ -46,21 +46,33 @@ export class InputHandler {
 
         // K1 Tab Buttons
         setupFocusButton('btn-focus-location', 'location');
-        setupFocusButton('btn-focus-fabric', 'fabric');
-        setupFocusButton('btn-focus-color', 'color');
+        setupFocusButton('btn-focus-fabric', 'fabric'); // This button's behavior will be complex
 
         // K2 Tab Buttons
         setupFocusButton('btn-focus-over', 'over');
         setupBatchButton('btn-batch-over-o', 'over', 'O');
         setupBatchButton('btn-batch-over-normal', 'over', '');
-
         setupFocusButton('btn-focus-oi', 'oi');
         setupBatchButton('btn-batch-oi-in', 'oi', 'IN');
         setupBatchButton('btn-batch-oi-out', 'oi', 'OUT');
-
         setupFocusButton('btn-focus-lr', 'lr');
         setupBatchButton('btn-batch-lr-l', 'lr', 'L');
         setupBatchButton('btn-batch-lr-r', 'lr', 'R');
+
+        // --- [NEW] Event listener for the K1 panel input table ---
+        const batchTable = document.getElementById('fabric-batch-table');
+        if (batchTable) {
+            batchTable.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && event.target.matches('.panel-input')) {
+                    event.preventDefault(); // Prevent default form submission
+                    const input = event.target;
+                    this.eventAggregator.publish('panelInputEnterPressed', {
+                        type: input.dataset.type,
+                        field: input.dataset.field
+                    });
+                }
+            });
+        }
     }
 
     _setupPhysicalKeyboard() {

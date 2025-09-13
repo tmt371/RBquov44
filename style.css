@@ -64,7 +64,7 @@ html, body {
 .results-table .col-sequence { width: 40px; }
 .results-table .col-w { width: auto; }
 .results-table .col-h { width: auto; }
-.results-table .col-type { width: auto; }
+.results-table .col-type { width: 80px; }
 .results-table .col-price { width: 90px; }
 /* Add classes for new dynamic columns */
 .results-table .col-location { width: 120px; }
@@ -356,7 +356,6 @@ html, body {
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
 }
 
-/* [NEW] Style for batch operation buttons */
 .batch-button {
     background-color: #e0f2fe; /* Light blue background */
     border-color: #7dd3fc;
@@ -364,4 +363,33 @@ html, body {
 
 .batch-button:hover {
     background-color: #bae6fd;
+}
+
+/* --- [NEW] K1 Panel Input Table Styles --- */
+.panel-input-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+.panel-input-table th, .panel-input-table td {
+    border: 1px solid #b0b8c4;
+    padding: 4px 6px;
+    font-size: 0.9em;
+    text-align: center;
+}
+.panel-input-table th {
+    background-color: #e5e7eb;
+    font-weight: bold;
+}
+.panel-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #b0b8c4;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 1em;
+}
+.panel-input:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
 }

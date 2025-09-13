@@ -103,14 +103,6 @@ export class QuoteService {
         return false;
     }
     
-    // --- [NEW] Generic method for cycling through a list of options ---
-    /**
-     * Cycles a property of an item through a list of options.
-     * @param {number} rowIndex The index of the item.
-     * @param {string} property The property key to cycle.
-     * @param {Array<*>} options The array of possible values.
-     * @returns {boolean} True if the value was changed.
-     */
     cycleItemProperty(rowIndex, property, options) {
         const item = this._getItems()[rowIndex];
         if (!item) return false;
@@ -127,19 +119,34 @@ export class QuoteService {
         return false;
     }
 
-    // --- [NEW] Method for batch updating a property for all items ---
-    /**
-     * Updates a property for all valid items in the quote.
-     * @param {string} property The property key to update.
-     * @param {*} value The new value to set.
-     * @returns {boolean} True if any value was changed.
-     */
     batchUpdateProperty(property, value) {
         const items = this._getItems();
         let changed = false;
         items.forEach(item => {
             // Only update rows with data, not the final empty row
             if (item.width || item.height) {
+                if (item[property] !== value) {
+                    item[property] = value;
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
+    
+    // --- [NEW] Method for batch updating a property based on fabricType ---
+    /**
+     * Updates a property for all items that match a specific fabricType.
+     * @param {string} type The fabricType to match (e.g., 'BO', 'SN').
+     * @param {string} property The property key to update (e.g., 'fabric', 'color').
+     * @param {*} value The new value to set.
+     * @returns {boolean} True if any value was changed.
+     */
+    batchUpdatePropertyByType(type, property, value) {
+        const items = this._getItems();
+        let changed = false;
+        items.forEach(item => {
+            if (item.fabricType === type) {
                 if (item[property] !== value) {
                     item[property] = value;
                     changed = true;

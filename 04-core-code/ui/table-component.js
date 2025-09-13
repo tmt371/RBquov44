@@ -10,7 +10,6 @@ const COLUMN_CONFIG = {
     height: { header: 'H', className: 'col-h', dataColumn: 'height', cellType: 'td' },
     TYPE: { header: 'TYPE', className: 'col-type', dataColumn: 'TYPE', cellType: 'td' },
     Price: { 
-        // [MODIFIED] Header is now a function that uses the state to set the input value directly.
         header: (state) => `<input type="text" class="input-display-cell" id="input-display-cell" value="${state.ui.inputValue || ''}" readonly>`, 
         className: 'input-display-header col-price', 
         dataColumn: 'Price',
@@ -18,12 +17,14 @@ const COLUMN_CONFIG = {
     },
     // K1 columns
     location: { header: 'Location', className: 'col-location', dataColumn: 'location', cellType: 'td' },
-    fabric: { header: 'Fabric', className: 'col-fabric', dataColumn: 'fabric', cellType: 'td' },
-    color: { header: 'Color', className: 'col-color', dataColumn: 'color', cellType: 'td' },
+    fabric: { header: 'F-Name', className: 'col-fabric', dataColumn: 'fabric', cellType: 'td' },
+    color: { header: 'F-Color', className: 'col-color', dataColumn: 'color', cellType: 'td' },
     // K2 columns
     over: { header: 'Over', className: 'col-over', dataColumn: 'over', cellType: 'td' },
     oi: { header: 'O/I', className: 'col-oi', dataColumn: 'oi', cellType: 'td' },
     lr: { header: 'L/R', className: 'col-lr', dataColumn: 'lr', cellType: 'td' },
+    // --- [NEW] A non-interactive display version of the fabric type for specific views ---
+    fabricTypeDisplay: { header: 'Type', className: 'col-type', dataColumn: 'fabricType', cellType: 'td' },
 };
 
 
@@ -51,7 +52,6 @@ export class TableComponent {
             const cell = document.createElement(config.cellType);
             cell.className = config.className;
             
-            // [MODIFIED] Check if the header config is a function and call it with the state
             if (typeof config.header === 'function') {
                 cell.innerHTML = config.header(state);
             } else {
@@ -137,6 +137,12 @@ export class TableComponent {
                 if (index === activeCell.rowIndex && activeCell.column === key) {
                     cell.classList.add('active-input-cell');
                 }
+                break;
+            // --- [NEW] ---
+            case 'fabricTypeDisplay':
+                cell.textContent = item.fabricType || '';
+                if (item.fabricType === 'BO1') cell.classList.add('type-bo1');
+                else if (item.fabricType === 'SN') cell.classList.add('type-sn');
                 break;
         }
     }

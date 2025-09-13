@@ -36,7 +36,7 @@ export class TableComponent {
 
     render(state) {
         const { rollerBlindItems } = state.quoteData;
-        const { visibleColumns } = state.ui;
+        const { visibleColumns, isLocationEditMode, targetCell } = state.ui;
 
         this.tableElement.innerHTML = '';
 
@@ -72,6 +72,11 @@ export class TableComponent {
             const row = tbody.insertRow();
             row.dataset.rowIndex = index;
 
+            // --- [NEW] Add highlight class to the entire target row ---
+            if (isLocationEditMode && targetCell && index === targetCell.rowIndex) {
+                row.classList.add('target-row-highlight');
+            }
+
             visibleColumns.forEach(key => {
                 const config = COLUMN_CONFIG[key];
                 if (!config) return;
@@ -88,7 +93,6 @@ export class TableComponent {
     _renderCellContent(cell, key, item, index, state) {
         const { activeCell, selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes, targetCell } = state.ui;
 
-        // --- [NEW] Add target-cell class if the cell is the current target ---
         if (targetCell && index === targetCell.rowIndex && key === targetCell.column) {
             cell.classList.add('target-cell');
         }
@@ -106,17 +110,17 @@ export class TableComponent {
                 break;
             case 'width':
                 cell.textContent = item.width || '';
-                if (index === activeCell.rowIndex && activeCell.column === 'width') cell.classList.add('active-input-cell');
+                if (activeCell && index === activeCell.rowIndex && activeCell.column === 'width') cell.classList.add('active-input-cell');
                 break;
             case 'height':
                 cell.textContent = item.height || '';
-                if (index === activeCell.rowIndex && activeCell.column === 'height') cell.classList.add('active-input-cell');
+                if (activeCell && index === activeCell.rowIndex && activeCell.column === 'height') cell.classList.add('active-input-cell');
                 break;
             case 'TYPE':
                 cell.textContent = (item.width || item.height) ? (item.fabricType || '') : '';
                 if (item.fabricType === 'BO1') cell.classList.add('type-bo1');
                 else if (item.fabricType === 'SN') cell.classList.add('type-sn');
-                if (index === activeCell.rowIndex && activeCell.column === 'TYPE') cell.classList.add('active-input-cell');
+                if (activeCell && index === activeCell.rowIndex && activeCell.column === 'TYPE') cell.classList.add('active-input-cell');
                 break;
             case 'Price':
                 cell.textContent = item.linePrice ? item.linePrice.toFixed(2) : '';
@@ -126,7 +130,7 @@ export class TableComponent {
             case 'fabric':
             case 'color':
                 cell.textContent = item[key] || '';
-                if (index === activeCell.rowIndex && activeCell.column === key) {
+                if (activeCell && index === activeCell.rowIndex && activeCell.column === key) {
                     cell.classList.add('active-input-cell');
                     cell.innerHTML = `<input type="text" value="${item[key] || ''}" class="editable-cell-input" data-row-index="${index}" data-column="${key}" />`;
                     setTimeout(() => cell.querySelector('input').focus(), 0);
@@ -136,7 +140,7 @@ export class TableComponent {
             case 'oi':
             case 'lr':
                 cell.textContent = item[key] || '';
-                if (index === activeCell.rowIndex && activeCell.column === key) {
+                if (activeCell && index === activeCell.rowIndex && activeCell.column === key) {
                     cell.classList.add('active-input-cell');
                 }
                 break;

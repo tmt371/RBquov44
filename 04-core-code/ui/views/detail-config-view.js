@@ -18,13 +18,13 @@ export class DetailConfigView {
 
         this.locationButton = document.getElementById('btn-focus-location');
         this.locationInput = document.getElementById('location-input-box');
+        this.fabricColorButton = document.getElementById('btn-focus-fabric'); // [NEW] Reference to the other button
 
         this._initialize();
         console.log("DetailConfigView Initialized (Corrected Passive View).");
     }
 
     _initialize() {
-        // This is a special case listener for the view to react to its own state changes
         this.eventAggregator.subscribe('stateChanged', (state) => this._onStateChanged(state));
     }
 
@@ -33,7 +33,6 @@ export class DetailConfigView {
 
         const { isLocationEditMode, locationInputValue } = state.ui;
 
-        // Sync Location Input Box
         if (this.locationInput) {
             this.locationInput.disabled = !isLocationEditMode;
             this.locationInput.classList.toggle('active', isLocationEditMode);
@@ -42,9 +41,14 @@ export class DetailConfigView {
             }
         }
         
-        // Sync Location Button
         if (this.locationButton) {
             this.locationButton.classList.toggle('active', isLocationEditMode);
+        }
+
+        // --- [NEW] Manage button disabled state based on mode ---
+        if (this.fabricColorButton) {
+            this.fabricColorButton.classList.toggle('disabled-by-mode', isLocationEditMode);
+            this.fabricColorButton.disabled = isLocationEditMode;
         }
     }
 
@@ -72,15 +76,19 @@ export class DetailConfigView {
         this.uiService.setIsLocationEditMode(newEditState);
 
         if (newEditState) {
-            // Entering edit mode
             this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'location']);
-            this.uiService.setTargetCell({ rowIndex: 0, column: 'location' });
+            const targetRow = 0;
+            this.uiService.setTargetCell({ rowIndex: targetRow, column: 'location' });
+            
+            // [FIX] Load existing data of the target cell into the input box
+            const currentItem = this.quoteService.getItems()[targetRow];
+            this.uiService.setLocationInputValue(currentItem.location || '');
+            
             setTimeout(() => {
                 this.locationInput.focus();
                 this.locationInput.select();
             }, 0);
         } else {
-            // Exiting edit mode
             this.uiService.setTargetCell(null);
             this.uiService.setLocationInputValue('');
         }
@@ -91,22 +99,19 @@ export class DetailConfigView {
         const { targetCell } = this.uiService.getState();
         if (!targetCell) return;
 
-        // 1. Update the data
         this.quoteService.updateItemProperty(targetCell.rowIndex, targetCell.column, value);
 
-        // 2. Move to the next target cell
         const nextRowIndex = targetCell.rowIndex + 1;
         const totalRows = this.quoteService.getItems().length;
 
-        if (nextRowIndex < totalRows - 1) { // -1 because the last row is always empty
+        if (nextRowIndex < totalRows - 1) {
             this.uiService.setTargetCell({ rowIndex: nextRowIndex, column: 'location' });
             const nextItem = this.quoteService.getItems()[nextRowIndex];
             this.uiService.setLocationInputValue(nextItem.location || '');
             this.publish();
             setTimeout(() => this.locationInput.select(), 0);
         } else {
-            // End of the list, exit edit mode
-            this._toggleLocationEditMode();
+            this._toggleLocationEditMode(); // Auto-exit after the last item
         }
     }
 
